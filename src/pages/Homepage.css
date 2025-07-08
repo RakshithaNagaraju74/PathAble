@@ -1,0 +1,797 @@
+/*
+ * AccessMap Homepage Styles - Replicating provided UI Image and enhancing further
+ * Prioritizing clarity, accessibility, and modern professionalism for users with disabilities.
+ */
+
+/* --- 0. Global Variables & Base Styles --- */
+:root {
+    /* Color Palette: Light Mode Defaults */
+    --background-dark: #121212; /* Very dark background, almost black */
+    --background-light: #FFFFFF; /* Pure white for cards */
+    --text-on-dark: #E0E0E0; /* Light gray for text on dark backgrounds */
+    --text-on-light: #212121; /* Dark gray for text on light backgrounds */
+    --text-muted: #9E9E9E; /* Muted gray for secondary text */
+    --border-color: #E0E0E0; /* Light gray for borders, used in light elements */
+    --accent-color: #333333; /* Dark gray/black for main buttons and strong accents */
+    --card-background-dark: #1A1A1A; /* Slightly lighter dark for specific cards/elements in dark theme */
+
+    /* Typography */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Lato', sans-serif;
+
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 3rem;
+    --spacing-xl: 6rem;
+    --spacing-xxl: 8rem;
+
+    --max-width: 1200px;
+    --border-radius: 20px;
+    --card-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    --image-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Mode Variables */
+[data-theme='dark'] {
+    --background-dark: #121212;
+    --background-light: #1A1A1A; /* Darker cards in dark mode */
+    --text-on-dark: #E0E0E0;
+    --text-on-light: #F0F0F0; /* Lighter text on dark cards */
+    --text-muted: #9E9E9E;
+    --border-color: #555555; /* Darker border for dark elements */
+    --accent-color: #E0E0E0; /* Lighter accent for dark mode buttons */
+    --card-background-dark: #212121; /* Even darker cards in dark mode */
+}
+
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap');
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    color: var(--text-on-dark);
+    background-color: var(--background-dark);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+}
+
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-on-dark); /* Headings adapt to theme */
+    transition: color 0.5s ease; /* Smooth theme transition */
+}
+
+h1 { font-size: clamp(3rem, 5vw, 4.5rem); margin-bottom: var(--spacing-md); }
+h2 { font-size: clamp(2.2rem, 4vw, 3.5rem); margin-bottom: var(--spacing-lg); }
+h3 { font-size: clamp(1.4rem, 2vw, 1.8rem); margin-bottom: var(--spacing-sm); }
+p {
+    margin-bottom: var(--spacing-md);
+    max-width: 70ch;
+    color: var(--text-muted); /* Paragraphs adapt to theme */
+    transition: color 0.5s ease; /* Smooth theme transition */
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--text-muted);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.section-padding {
+    padding: var(--spacing-xl) 0;
+}
+
+.text-center {
+    text-align: center;
+}
+.text-center p {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- Buttons --- */
+.btn {
+    display: inline-block;
+    padding: 0.9rem 2.2rem;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, color 0.5s ease, border-color 0.5s ease; /* Added border-color to transition */
+    border: none;
+    font-size: 1rem;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: var(--background-light);
+}
+.btn-primary:hover {
+    background-color: #000;
+    color: #fff;
+}
+[data-theme='dark'] .btn-primary {
+    background-color: var(--accent-color);
+    color: var(--text-on-dark);
+}
+[data-theme='dark'] .btn-primary:hover {
+    background-color: #333;
+    color: var(--background-light);
+}
+
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--accent-color);
+    border: 2px solid var(--border-color); /* Uses CSS variable */
+}
+.btn-secondary:hover {
+    background-color: #f8f8f8;
+    color: var(--text-on-light);
+}
+[data-theme='dark'] .btn-secondary {
+    color: var(--text-on-dark);
+    border: 2px solid var(--border-color);
+}
+[data-theme='dark'] .btn-secondary:hover {
+    background-color: #2a2a2a;
+    color: var(--text-on-dark);
+}
+
+/* --- 1. Header --- */
+.main-header {
+    padding: var(--spacing-md) 0;
+    position: absolute;
+    width: 100%;
+    z-index: 100;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-on-dark); /* Ensure logo is visible on dark background */
+    transition: color 0.5s ease;
+}
+
+.nav-links {
+    display: none;
+    list-style: none;
+    gap: var(--spacing-lg);
+}
+
+.nav-links a {
+    font-size: 1rem;
+    padding: 0.5rem 0;
+    color: var(--text-on-dark); /* Nav links visible on dark background */
+    position: relative;
+    transition: color 0.5s ease;
+}
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--text-on-dark);
+    transition: width 0.3s ease, background-color 0.5s ease;
+}
+.nav-links a:hover::after,
+.nav-links a:focus::after {
+    width: 100%;
+}
+
+.btn-header {
+    background: var(--accent-color);
+    color: var(--background-light);
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+.btn-header:hover {
+    background-color: #000;
+}
+[data-theme='dark'] .btn-header {
+    background-color: var(--accent-color);
+    color: var(--text-on-dark);
+}
+[data-theme='dark'] .btn-header:hover {
+    background-color: #333;
+}
+
+
+/* Theme Toggle Styles */
+.theme-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 60px;
+    height: 30px;
+    background-color: var(--background-light);
+    border-radius: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.5s ease;
+}
+[data-theme='dark'] .theme-toggle-wrapper {
+    background-color: var(--card-background-dark);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.theme-toggle-wrapper input[type="checkbox"] {
+    height: 0;
+    width: 0;
+    visibility: hidden;
+}
+
+.theme-toggle-label {
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5px;
+    position: relative;
+}
+
+.theme-toggle-label::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--text-on-light);
+    border-radius: 50%;
+    transition: transform 0.3s ease, background-color 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme='dark'] .theme-toggle-label::after {
+    transform: translateX(30px);
+    background-color: var(--text-on-dark);
+}
+
+.theme-toggle-label svg {
+    z-index: 1;
+}
+
+/* --- 2. Hero Section --- */
+.hero-section {
+    padding-top: 180px;
+    padding-bottom: var(--spacing-xxl);
+    background-color: var(--background-dark);
+    transition: background-color 0.5s ease;
+}
+
+.hero-card {
+    background-color: var(--background-light);
+    color: var(--text-on-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    align-items: center;
+    box-shadow: var(--card-shadow);
+    transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+}
+[data-theme='dark'] .hero-card {
+    background-color: var(--card-background-dark);
+}
+
+
+.hero-text-content {
+    flex: 1;
+    max-width: 600px;
+    text-align: left;
+}
+.hero-text-content h1 {
+    color: var(--text-on-light);
+    font-size: clamp(3.2rem, 5vw, 4rem);
+}
+[data-theme='dark'] .hero-text-content h1 {
+    color: var(--text-on-dark);
+}
+.hero-text-content p {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+}
+.hero-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.hero-image-wrapper {
+    flex: 1.2;
+    width: 100%;
+    min-width: 300px;
+}
+.hero-image-wrapper img {
+    border-radius: var(--border-radius);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    box-shadow: var(--image-shadow);
+}
+
+/* --- 3. How It Works Section --- */
+.how-it-works-section {
+    background-color: var(--background-dark);
+    padding-top: var(--spacing-xl);
+    transition: background-color 0.5s ease;
+}
+.how-it-works-section .section-subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+}
+
+.step-item {
+    background-color: var(--card-background-dark);
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-radius: var(--border-radius);
+    color: var(--text-on-dark);
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.5s ease, color 0.5s ease;
+}
+.step-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.step-item svg {
+    color: var(--text-on-dark);
+    margin-bottom: var(--spacing-md);
+    font-size: 40px;
+    transition: color 0.5s ease;
+}
+.step-item h3 {
+    color: var(--text-on-dark);
+    font-size: 1.6rem;
+}
+.step-item p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+
+/* --- New Mid-Content Section with Images --- */
+.mid-content-section {
+    background-color: var(--background-dark);
+    padding: var(--spacing-xxl) 0; /* Adjust padding for visual balance */
+    transition: background-color 0.5s ease;
+}
+
+.mid-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr; /* This creates the 1fr image, 2fr text, 1fr image layout */
+    align-items: center;
+    /* No max-width or margin auto here to allow full width images */
+}
+
+.mid-content-image {
+    padding: 0; /* Remove padding to allow image to touch edges */
+    overflow: hidden;
+    /* box-shadow: var(--image-shadow); Removed box shadow for seamless edges */
+}
+/* Ensure images span full height in their grid area */
+.mid-content-image img {
+    border-radius: 0; /* Remove border-radius to allow seamless edges */
+    object-fit: cover;
+    height: 350px; /* Fixed height for consistency */
+    width: 100%;
+    display: block;
+}
+
+/* Specific styling for left and right images to extend to screen edges */
+.mid-content-image-left {
+    padding-left: 0; /* Ensure no padding on the very left */
+    /* Only apply shadow on the inner side if desired, otherwise remove */
+    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.15); /* Shadow on the right side */
+}
+
+.mid-content-image-right {
+    padding-right: 0; /* Ensure no padding on the very right */
+    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.15); /* Shadow on the left side */
+}
+
+
+.mid-content-text {
+    padding: var(--spacing-md);
+    text-align: center;
+    /* Add horizontal padding based on container for text alignment */
+    /* The .container class added in JSX handles max-width and padding for the text */
+}
+.mid-content-text h2 {
+    font-size: clamp(2.5rem, 4vw, 3.8rem);
+    color: var(--text-on-dark);
+    margin-bottom: var(--spacing-md);
+}
+.mid-content-text h2 em {
+    font-style: normal;
+    color: var(--text-on-dark);
+}
+.mid-content-text p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto var(--spacing-lg);
+}
+.mid-content-text .btn-primary {
+    background-color: var(--accent-color);
+    color: var(--background-light);
+}
+
+
+/* --- 4. Features Section --- */
+.features-section {
+    padding: var(--spacing-xl) 0;
+    background-color: var(--background-dark);
+    transition: background-color 0.5s ease;
+}
+
+.features-card {
+    background-color: #2D3D3A; /* A specific dark green for this card based on the image */
+    color: var(--text-on-dark);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    align-items: flex-start;
+    text-align: left;
+    box-shadow: var(--card-shadow);
+    transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+}
+[data-theme='dark'] .features-card {
+    background-color: var(--card-background-dark); /* Use a more generic dark background in dark mode */
+}
+
+.features-text-content {
+    flex: 1;
+    min-width: 300px;
+}
+.features-text-content h2 {
+    color: var(--text-on-dark);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: var(--spacing-md);
+}
+.features-text-content p {
+    margin-left: 0;
+    margin-right: 0;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-lg);
+}
+.features-text-content .btn {
+    margin-top: var(--spacing-md);
+    background-color: var(--background-light);
+    color: var(--text-on-light);
+    border: none;
+}
+.features-text-content .btn:hover {
+    background-color: #f0f0f0;
+}
+[data-theme='dark'] .features-text-content .btn {
+    background-color: var(--background-light); /* Lighter background for button in dark card */
+    color: var(--text-on-light); /* Darker text on lighter button */
+}
+
+
+.features-grid {
+    flex: 1.2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+.feature-item {
+    text-align: left;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: var(--spacing-md);
+    padding-left: var(--spacing-xs);
+    transition: border-color 0.5s ease;
+}
+[data-theme='dark'] .feature-item {
+    border-color: rgba(255,255,255,0.1);
+}
+.feature-item svg {
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-on-dark);
+    font-size: 30px;
+}
+.feature-item h3 {
+    color: var(--text-on-dark);
+    font-size: 1.5rem;
+}
+.feature-item p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+
+/* --- 5. Impact Section --- */
+.impact-section {
+    background-color: var(--background-dark);
+    transition: background-color 0.5s ease;
+}
+.impact-metrics {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xxl);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-xl);
+}
+.metric-item {
+    text-align: center;
+}
+.metric-number {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--text-on-dark);
+    display: block;
+    line-height: 1;
+    transition: color 0.5s ease;
+}
+.metric-item p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.testimonial {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: 1.8rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.5;
+    color: var(--text-on-dark);
+    transition: color 0.5s ease;
+}
+.testimonial span {
+    display: block;
+    font-family: var(--font-body);
+    font-style: normal;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-top: var(--spacing-md);
+    color: var(--text-muted);
+}
+
+/* --- 7. Footer --- */
+.main-footer {
+    background-color: #0C0F14;
+    padding: var(--spacing-lg) 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+[data-theme='dark'] .main-footer {
+    background-color: #080A0E;
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+.footer-about { text-align: left; }
+.footer-about .logo {
+    color: var(--text-on-dark);
+    transition: color 0.5s ease;
+}
+.footer-about p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+.footer-links {
+    display: flex;
+    gap: var(--spacing-lg);
+}
+.footer-links a {
+    color: var(--text-muted);
+    transition: color 0.5s ease;
+}
+.footer-links a:hover {
+    color: white;
+}
+.social-media {
+    display: flex;
+    gap: var(--spacing-md);
+}
+.social-media a {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.5s ease;
+}
+.social-media a:hover {
+    color: white;
+    transform: scale(1.1);
+}
+
+/* --- 8. Media Queries --- */
+@media (min-width: 992px) {
+    .nav-links {
+        display: flex;
+    }
+    .hero-card {
+        flex-direction: row;
+        text-align: left;
+    }
+    .hero-text-content {
+        order: 1;
+    }
+    .hero-image-wrapper {
+        order: 2;
+    }
+    .features-card {
+        flex-direction: row;
+        text-align: left;
+    }
+    .features-text-content {
+        flex: 1;
+    }
+    .features-text-content p {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .mid-content-grid {
+        grid-template-columns: 1fr 2fr 1fr;
+    }
+}
+
+@media (max-width: 991px) {
+    .hero-card {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--spacing-lg);
+    }
+    .hero-text-content {
+        order: 2;
+        max-width: 100%;
+    }
+    .hero-image-wrapper {
+        order: 1;
+        margin-bottom: var(--spacing-lg);
+    }
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .features-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: var(--spacing-lg);
+    }
+    .features-text-content {
+        max-width: 100%;
+        margin-bottom: var(--spacing-lg);
+    }
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    .feature-item {
+        text-align: center;
+    }
+    .mid-content-grid {
+        grid-template-columns: 1fr; /* Stack on smaller screens */
+    }
+    /* Full width images on small screens */
+    .mid-content-image-left, .mid-content-image-right {
+        width: 100%;
+        box-shadow: none; /* Remove shadows if images are stacked */
+    }
+    .mid-content-image img {
+        height: 250px; /* Adjust height for mobile */
+    }
+    .mid-content-text {
+        order: -1; /* Keep text above images when stacked */
+        padding: var(--spacing-lg) var(--spacing-md); /* Add more vertical padding */
+    }
+}
+
+
+@media (max-width: 768px) {
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.3rem; }
+
+    .navbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    .btn-header { display: none; }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-about, .footer-links, .social-media {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: var(--spacing-md);
+    }
+    .footer-links {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    .hero-image-wrapper img {
+        height: 250px;
+    }
+    .testimonial {
+        font-size: 1.3rem;
+    }
+    .impact-metrics {
+        gap: var(--spacing-lg);
+    }
+    .metric-number {
+        font-size: 3rem;
+    }
+}
