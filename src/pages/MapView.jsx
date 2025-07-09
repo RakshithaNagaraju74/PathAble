@@ -9,8 +9,6 @@ import {
 } from 'lucide-react';
 
 import { auth, db } from '../firebase'; // Ensure your firebase.js correctly exports 'auth'
-// AddReportModal is now assumed to be AddReportPage and handled by router
-// import AddReportModal from './AddReportPage'; 
 import { useNavigate } from 'react-router-dom';
 import { searchPlace } from '../utils/locationUtils'; // Import searchPlace from new utilities
 
@@ -249,6 +247,9 @@ const MapView = () => {
   const [loggedInNgoId, setLoggedInNgoId] = useState(null); // NEW: Store NGO ID if logged in as NGO
   const [isGloballySpammed, setIsGloballySpammed] = useState(false); // NEW: User's global spam status
 
+  // NEW: State for user's premium status
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const REPORTS_FREE_LIMIT = 3; // Define the free report limit
 
   const [isAuthReady, setIsAuthReady] = useState(false); // New state to track Firebase auth readiness
 
@@ -262,8 +263,6 @@ const MapView = () => {
   const [filterType, setFilterType] = useState('all');
   const [sortOrder, setSortOrder] = useState('newest'); // Now directly controls the sorting for 'filteredReports'
 
-  // Removed showAddReportModal and selectedLocation as they are no longer needed for map interaction
-  // The AddReportPage will be navigated to directly.
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [currentReportForComments, setCurrentReportForComments] = useState(null);
 
@@ -414,6 +413,8 @@ const MapView = () => {
           }
           // NEW: Set global spam status
           setIsGloballySpammed(mongoData?.isGloballySpammed || false);
+          // NEW: Set premium status
+          setIsPremiumUser(mongoData?.premium || false);
 
         } catch (error) {
           console.error("Error during initial user data fetching/processing:", error);
@@ -432,6 +433,7 @@ const MapView = () => {
         setIsNgoAccount(false); // Reset NGO status
         setLoggedInNgoId(null); // Clear NGO ID
         setIsGloballySpammed(false); // Reset global spam status
+        setIsPremiumUser(false); // Reset premium status
         navigate('/'); // Redirect to home/login page
       }
       setIsAuthReady(true);
@@ -442,12 +444,12 @@ const MapView = () => {
 
   // 4. Fetch Accessibility Reports from MongoDB
   useEffect(() => {
-    if (isAuthReady) {
+    if (isAuthReady && userId) { // Ensure userId is available for the backend call
       const fetchReports = async () => {
         try {
           console.log('Fetching all accessibility reports...');
-          // Fetch reports for regular user view (not marked as spam by any NGO)
-          const response = await fetch('http://localhost:5000/api/reports');
+          // Pass userId as a query parameter for premium check on backend
+          const response = await fetch(`http://localhost:5000/api/reports?userId=${userId}`);
           if (!response.ok) {
             const errorText = await response.text();
             console.error(`HTTP error fetching reports! Status: ${response.status}, Response: ${errorText}`);
@@ -470,7 +472,8 @@ const MapView = () => {
 
       return () => clearInterval(intervalId);
     }
-  }, [isAuthReady]);
+  }, [isAuthReady, userId]); // Depend on userId as well
+
 
   // NEW: Fetch Global Accessibility Insights
   useEffect(() => {
@@ -566,16 +569,10 @@ const MapView = () => {
       return;
     }
 
-    // Using searchPlace from locationUtils, but not for map re-centering
-    // as the map component itself is not rendered here.
-    // The search term will be used for client-side filtering of reports.
     try {
       const geoResults = await searchPlace(searchTerm);
       if (geoResults.length > 0) {
-        // If we get coordinates, we could theoretically use them for more advanced filtering
-        // (e.g., proximity search), but for now, the filtering remains string-based.
         console.log("Geocoded search term:", geoResults[0].lat, geoResults[0].lon);
-        // No direct map action here. The useEffect for filtering will handle the searchTerm.
       } else {
         setError("Location not found via geocoding. Filtering will proceed based on text match only.");
       }
@@ -651,6 +648,7 @@ const MapView = () => {
       setIsNgoAccount(false); // Reset NGO status
       setLoggedInNgoId(null); // Clear NGO ID
       setIsGloballySpammed(false); // Reset global spam status
+      setIsPremiumUser(false); // Reset premium status
       navigate('/');
     } catch (error) {
       console.error("Error logging out:", error);
@@ -823,8 +821,6 @@ const MapView = () => {
         setError("Failed to update trust reaction. Please try again.");
       } else {
         console.log("Trust reaction updated on backend successfully.");
-        // If necessary, you could re-fetch reports here to ensure full data consistency if needed, or rely on optimistic update
-        // (For a real-time app, websocket or snapshot listeners would handle this)
       }
     } catch (err) {
       console.error("Error toggling trust:", err);
@@ -849,6 +845,12 @@ const MapView = () => {
       return newMode;
     });
   };
+
+  // NEW: handleUpgrade function for premium access
+  const handleUpgrade = () => {
+    navigate('/premium-access'); // Navigate to the new PremiumAccessPage
+  };
+
 
   // Display loading screen until authentication is ready AND initial data is fetched
   if (!isAuthReady || loading) {
@@ -894,6 +896,12 @@ const MapView = () => {
               <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold"
                     style={{ backgroundColor: currentColors.ngoAccountBg, color: currentColors.ngoAccountText }}>
                 NGO
+              </span>
+            )}
+            {isPremiumUser && ( // Premium Badge in profile
+              <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    style={{ background: currentColors.premiumBg, color: currentColors.sidebarActiveText }}>
+                🏅 Premium
               </span>
             )}
           </p>
@@ -1024,7 +1032,6 @@ const MapView = () => {
           <div className="lg:col-span-2 p-7 rounded-xl shadow-md border transition-all duration-300 hover:scale-[1.005] hover:shadow-lg hover:translate-y-[-2px]" style={{ backgroundColor: currentColors.cardBackground, borderColor: currentColors.cardBorder }}>
             <div className="flex flex-col sm:flex-row items-center sm:items-start relative">
               <img
-                // Added defensive checks for currentColors.avatarBg and userName
                 src={`https://placehold.co/100x100/${currentColors.avatarBg ? currentColors.avatarBg.substring(1) : 'A78BFA'}/ffffff?text=${userName ? userName.charAt(0).toUpperCase() : '?'}`}
                 alt="User Avatar"
                 className="w-28 h-28 rounded-full mb-4 sm:mb-0 sm:mr-7 object-cover shadow-md border-4"
@@ -1244,8 +1251,8 @@ const MapView = () => {
 
           {/* Displayed Reports */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {isSearchOrFilterActive ? (
-              // Show all filtered reports when search/filter is active
+            {isSearchOrFilterActive || isPremiumUser ? (
+              // Show all filtered reports or all reports if premium
               filteredReports.length > 0 ? (
                 filteredReports.map((report) => (
                   <div
@@ -1353,9 +1360,9 @@ const MapView = () => {
                 <p className="text-center py-8 col-span-full" style={{ color: currentColors.textSecondary }}>No reports found matching your criteria.</p>
               )
             ) : (
-              // Show only the top 3 recent reports when no search/filter is active
-              accessibilityReports.slice(0, 3).length > 0 ? (
-                accessibilityReports.slice(0, 3).map((report) => (
+              // Show only the top 3 recent reports when no search/filter is active and user is not premium
+              filteredReports.slice(0, REPORTS_FREE_LIMIT).length > 0 ? (
+                filteredReports.slice(0, REPORTS_FREE_LIMIT).map((report) => (
                   <div
                     key={report._id}
                     className="p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] hover:shadow-xl flex flex-col cursor-pointer relative" // Added relative for status badge positioning
@@ -1461,8 +1468,25 @@ const MapView = () => {
               )
             )}
           </div>
-          {/* "See All Reports" button */}
-          {!isSearchOrFilterActive && accessibilityReports.length >= 0 && ( // Only show if not filtered/searched and there are more than 3 reports
+          {/* "See All Reports" button or Premium Prompt */}
+          {!isPremiumUser && !isSearchOrFilterActive && accessibilityReports.length > REPORTS_FREE_LIMIT ? (
+            <div className="mt-6 text-center bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow-md border"
+                 style={{ backgroundColor: currentColors.notificationUnreadBg, color: currentColors.notificationUnreadText, borderColor: currentColors.secondaryAccent }}>
+              <strong style={{ color: currentColors.primaryBrand }}>🔓 Unlock full access!</strong><br />
+              You've reached the free limit of {REPORTS_FREE_LIMIT} reports. Upgrade to Premium to view unlimited reports and support our mission.
+              <button
+                onClick={handleUpgrade}
+                className="ml-4 px-6 py-2 rounded-full font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                style={{
+                  background: currentColors.premiumBg,
+                  color: currentColors.sidebarActiveText,
+                  border: 'none',
+                }}
+              >
+                Upgrade to Premium
+              </button>
+            </div>
+          ) : (isPremiumUser && !isSearchOrFilterActive && accessibilityReports.length > 0) && (
             <div className="mt-6 text-center">
               <button
                 onClick={() => navigate('/all-reports')} // Navigate to the new page for all reports
@@ -1478,10 +1502,6 @@ const MapView = () => {
           )}
         </section>
       </main>
-
-      {/* Add Report Modal (This component is no longer rendered as a modal here) */}
-      {/* It is expected that the router will render AddReportPage when navigating to /add-report */}
-      {/* The initialLat and initialLng will be passed via react-router-dom's state */}
 
       {/* Comments Modal (This modal might be duplicated if MyContributionsPage also has one) */}
       {showCommentsModal && currentReportForComments && (
