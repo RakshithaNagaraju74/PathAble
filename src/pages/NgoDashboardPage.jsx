@@ -39,6 +39,8 @@ const colors = {
     userSpammedByYouText: '#DC2626', // Red text for user marked as spam by current NGO
     officialResponseBg: '#E0F7FA', // Light cyan for official response
     officialResponseText: '#007B8C', // Teal text for official response
+    premiumBadgeBg: 'linear-gradient(to right, #FFD700, #FFA500)', // Gold to Orange for Premium NGO badge
+    premiumBadgeText: '#333333', // Dark text for premium badge
   },
   dark: {
     primaryBrand: '#00BCD4', // Lighter Cyan - Main accent color
@@ -74,6 +76,8 @@ const colors = {
     glowAccent: 'rgba(255, 171, 64, 0.7)', // Accent glow effect
     officialResponseBg: '#004D40', // Dark teal for official response
     officialResponseText: '#80CBC4', // Light teal text for official response
+    premiumBadgeBg: 'linear-gradient(to right, #FFAB40, #FFD700)', // Orange to Gold for Premium NGO badge
+    premiumBadgeText: '#121212', // Dark text for premium badge
   }
 };
 
@@ -89,6 +93,8 @@ export default function NgoDashboardPage() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  // NEW STATE: Logged-in NGO's details, including isVerified
+  const [loggedInNgoDetails, setLoggedInNgoDetails] = useState(null);
 
   const [darkMode, setDarkMode] = useState(false);
   const currentColors = darkMode ? colors.dark : colors.light;
@@ -170,6 +176,7 @@ export default function NgoDashboardPage() {
     setLoggedInNgoId(null);
     localStorage.removeItem('ngoId');
     setIsNgoLoggedIn(false);
+    setLoggedInNgoDetails(null); // Clear NGO details on logout
     setUserReportsForReview([]);
     setAllNgoReports([]);
     setUsers([]);
@@ -191,6 +198,18 @@ export default function NgoDashboardPage() {
     try {
       setLoading(true);
       setError(null);
+
+      // Fetch logged-in NGO's details first
+      console.log("Fetching logged-in NGO details...");
+      const ngoDetailsResponse = await fetch(`http://localhost:5000/api/ngos/${loggedInNgoId}`);
+      if (!ngoDetailsResponse.ok) {
+        const errorText = await ngoDetailsResponse.text();
+        throw new Error(`HTTP error! status: ${ngoDetailsResponse.status} for NGO details: ${errorText}`);
+      }
+      const ngoDetailsData = await ngoDetailsResponse.json();
+      setLoggedInNgoDetails(ngoDetailsData);
+      console.log("[fetchReportsAndUsers] Fetched logged-in NGO details:", ngoDetailsData);
+
 
       // Construct query parameters for reports
       const queryParams = new URLSearchParams();
@@ -812,6 +831,18 @@ export default function NgoDashboardPage() {
       >
         <h1 className="text-4xl font-extrabold mb-4 md:mb-0" style={{ color: currentColors.primaryBrand, textShadow: darkMode ? `0 0 18px ${currentColors.primaryBrand}` : 'none' }}>NGO Dashboard</h1>
         <div className="flex flex-wrap justify-center items-center gap-4">
+          {/* NEW: NGO Premium/Verified Badge */}
+          {loggedInNgoDetails?.isVerified && (
+            <div className="flex items-center px-4 py-2 rounded-full text-base font-bold shadow-md"
+                 style={{
+                   background: currentColors.premiumBadgeBg,
+                   color: currentColors.premiumBadgeText,
+                   boxShadow: darkMode ? `0 0 15px ${currentColors.premiumBadgeBg}` : `0 5px 15px rgba(255,215,0,0.4)`
+                 }}>
+              <Award size={20} className="mr-2" /> Verified NGO
+            </div>
+          )}
+
           <button
             onClick={handleGoBack}
             className="px-6 py-3 rounded-full font-bold text-base transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 flex items-center justify-center"
@@ -918,6 +949,11 @@ export default function NgoDashboardPage() {
                   const spamCount = report.markedAsSpamByNgos ? report.markedAsSpamByNgos.length : 0;
                   const verifiedCount = report.verifiedByNgos ? report.verifiedByNgos.length : 0;
 
+                  // Find the verification entry by the current logged-in NGO
+                  const currentNgoVerification = report.verifiedByNgos?.find(v => v.ngoId === loggedInNgoId);
+                  const isVerifiedByCurrentNgoPremium = currentNgoVerification?.isNgoPremium;
+
+
                   return (
                     <div
                       key={report._id}
@@ -933,6 +969,7 @@ export default function NgoDashboardPage() {
                           <h3 className="text-xl font-bold" style={{ color: currentColors.textPrimary }}>{report.placeName}</h3>
                           <p className="text-sm" style={{ color: currentColors.textSecondary }}>{report.address}</p>
                         </div>
+                        {/* UPDATED: Display logic for verification/spam badges */}
                         {markedAsSpamByThisNgo ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: currentColors.spamBadgeBg, color: currentColors.spamBadgeText }}>
                             <XCircle size={16} className="mr-1" style={{filter: darkMode ? `drop-shadow(0 0 5px ${currentColors.spamBadgeText})` : 'none'}} /> Marked by You (Spam)
@@ -959,16 +996,34 @@ export default function NgoDashboardPage() {
                           </span>
                         )}
                       </div>
-                      {spamCount > 0 && (
-                          <p className="text-xs mb-2 flex items-center" style={{ color: currentColors.errorText }}>
-                              <AlertTriangle size={16} className="inline mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.errorText})` : 'none'}} /> Marked as Spam by {spamCount} NGO(s)
-                          </p>
+                      {/* Display all verifications and spam markings */}
+                      {report.verifiedByNgos && report.verifiedByNgos.length > 0 && (
+                          <div className="mb-2">
+                              {report.verifiedByNgos.map((v, idx) => (
+                                  <p key={idx} className="text-xs flex items-center" style={{ color: currentColors.successText }}>
+                                      <CheckCircle size={16} className="inline mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.successText})` : 'none'}} />
+                                      Verified by {v.ngoName}
+                                      {v.isNgoPremium && ( // Display premium badge if the verifying NGO is premium
+                                          <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold"
+                                                style={{ backgroundColor: currentColors.premiumBadgeBg, color: currentColors.premiumBadgeText }}>
+                                              Premium
+                                          </span>
+                                      )}
+                                  </p>
+                              ))}
+                          </div>
                       )}
-                      {verifiedCount > 0 && (
-                          <p className="text-xs mb-2 flex items-center" style={{ color: currentColors.successText }}>
-                              <CheckCircle size={16} className="inline mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.successText})` : 'none'}} /> Verified by {verifiedCount} NGO(s)
-                          </p>
+                      {report.markedAsSpamByNgos && report.markedAsSpamByNgos.length > 0 && (
+                          <div className="mb-2">
+                              {report.markedAsSpamByNgos.map((s, idx) => (
+                                  <p key={idx} className="text-xs flex items-center" style={{ color: currentColors.errorText }}>
+                                      <AlertTriangle size={16} className="inline mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.errorText})` : 'none'}} />
+                                      Marked as Spam by {s.ngoId} {s.reason && `(Reason: ${s.reason})`}
+                                  </p>
+                              ))}
+                          </div>
                       )}
+
                       <div className="flex items-center text-sm mb-4" style={{ color: currentColors.textSecondary }}>
                         <Clock size={16} className="mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.textSecondary})` : 'none'}} /> {new Date(report.timestamp).toLocaleDateString()}
                         <MessageSquare size={16} className="ml-4 mr-2" style={{filter: darkMode ? `drop-shadow(0 0 4px ${currentColors.textSecondary})` : 'none'}} /> {report.userComments ? report.userComments.length : 0} comments
