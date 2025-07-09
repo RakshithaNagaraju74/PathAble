@@ -95,9 +95,6 @@ export default function NgoDashboardPage() {
   const [loginError, setLoginError] = useState('');
   // NEW STATE: Logged-in NGO's details, including isVerified
   const [loggedInNgoDetails, setLoggedInNgoDetails] = useState(null);
-  // NEW STATE: For premium upgrade modal
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-
 
   const [darkMode, setDarkMode] = useState(false);
   const currentColors = darkMode ? colors.dark : colors.light;
@@ -441,36 +438,13 @@ export default function NgoDashboardPage() {
   const handleAddZoneClick = () => {
     setActiveTab('managedLocations'); // Switch to the map tab
     setStartDrawingMode(true); // Tell the map to start drawing
-    // Using a custom modal-like alert instead of window.alert
-    // For a full production app, you'd build a proper React modal component
-    const modalMessage = "Draw a polygon on the map to define your new zone. Click 'Save Zone' when done.";
-    const modalElement = document.createElement('div');
-    modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modalElement.innerHTML = `
-        <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-            <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-            <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Got it!</button>
-        </div>
-    `;
-    document.body.appendChild(modalElement);
-    modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+    alert("Draw a polygon on the map to define your new zone. Click 'Save Zone' when done.");
   };
 
 
   const handleVerifyReport = async (reportId, currentStatus) => {
     if (!loggedInNgoId) {
-      // Using a custom modal-like alert instead of window.alert
-      const modalMessage = "NGO not authenticated. Please log in.";
-      const modalElement = document.createElement('div');
-      modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modalElement.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(modalElement);
-      modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+      alert("NGO not authenticated. Please log in.");
       return;
     }
     const newStatus = !currentStatus;
@@ -499,54 +473,17 @@ export default function NgoDashboardPage() {
 
   const handleMarkReportAsSpam = async (reportId, currentStatus) => {
     if (!loggedInNgoId) {
-      // Using a custom modal-like alert instead of window.alert
-      const modalMessage = "NGO not authenticated. Please log in.";
-      const modalElement = document.createElement('div');
-      modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modalElement.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(modalElement);
-      modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+      alert("NGO not authenticated. Please log in.");
       return;
     }
     const newStatus = !currentStatus;
     let spamReason = '';
-
     if (newStatus) {
-        // Custom prompt for spam reason
-        const reasonModal = document.createElement('div');
-        reasonModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        reasonModal.innerHTML = `
-            <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-                <p class="text-xl font-semibold mb-4">Enter a reason for marking this report as spam (optional):</p>
-                <input type="text" id="spamReasonInput" class="w-full px-4 py-2 border rounded-lg shadow-sm mb-4" style="border-color: ${currentColors.borderSubtle}; background-color: ${currentColors.inputBg}; color: ${currentColors.textPrimary};" />
-                <button id="confirmSpamReason" class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Confirm</button>
-                <button id="cancelSpamReason" class="px-6 py-2 rounded-full text-white font-bold ml-2" style="background-color: ${currentColors.errorText};">Cancel</button>
-            </div>
-        `;
-        document.body.appendChild(reasonModal);
-
-        await new Promise(resolve => {
-            reasonModal.querySelector('#confirmSpamReason').onclick = () => {
-                spamReason = reasonModal.querySelector('#spamReasonInput').value;
-                document.body.removeChild(reasonModal);
-                resolve();
-            };
-            reasonModal.querySelector('#cancelSpamReason').onclick = () => {
-                document.body.removeChild(reasonModal);
-                resolve(null); // Resolve with null to indicate cancellation
-            };
-        });
-
-        if (spamReason === null) { // If user cancelled the prompt
-            return;
-        }
+      spamReason = prompt("Enter a reason for marking this report as spam (optional):");
+      if (spamReason === null) {
+        return;
+      }
     }
-
 
     try {
       const response = await fetch(`http://localhost:5000/api/reports/${reportId}/spam`, {
@@ -573,47 +510,10 @@ export default function NgoDashboardPage() {
 
   const handleAddOfficialResponse = async (reportId) => {
     if (!loggedInNgoId) {
-      // Using a custom modal-like alert instead of window.alert
-      const modalMessage = "NGO not authenticated. Please log in.";
-      const modalElement = document.createElement('div');
-      modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modalElement.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(modalElement);
-      modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+      alert("NGO not authenticated. Please log in.");
       return;
     }
-    
-    // Custom prompt for official response
-    let responseText = '';
-    const responseModal = document.createElement('div');
-    responseModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    responseModal.innerHTML = `
-        <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-            <p class="text-xl font-semibold mb-4">Enter your official response:</p>
-            <textarea id="responseTextarea" class="w-full px-4 py-2 border rounded-lg shadow-sm mb-4" rows="4" style="border-color: ${currentColors.borderSubtle}; background-color: ${currentColors.inputBg}; color: ${currentColors.textPrimary};"></textarea>
-            <button id="confirmResponse" class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Submit</button>
-            <button id="cancelResponse" class="px-6 py-2 rounded-full text-white font-bold ml-2" style="background-color: ${currentColors.errorText};">Cancel</button>
-        </div>
-    `;
-    document.body.appendChild(responseModal);
-
-    await new Promise(resolve => {
-        responseModal.querySelector('#confirmResponse').onclick = () => {
-            responseText = responseModal.querySelector('#responseTextarea').value;
-            document.body.removeChild(responseModal);
-            resolve();
-        };
-        responseModal.querySelector('#cancelResponse').onclick = () => {
-            document.body.removeChild(responseModal);
-            resolve(null); // Resolve with null to indicate cancellation
-        };
-    });
-
+    const responseText = prompt("Enter your official response:");
     if (responseText === null || responseText.trim() === '') {
       return;
     }
@@ -644,51 +544,16 @@ export default function NgoDashboardPage() {
 
   const handleMarkUserAsSpam = async (userUid, currentStatus) => {
     if (!loggedInNgoId) {
-      // Using a custom modal-like alert instead of window.alert
-      const modalMessage = "NGO not authenticated. Please log in.";
-      const modalElement = document.createElement('div');
-      modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modalElement.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(modalElement);
-      modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+      alert("NGO not authenticated. Please log in.");
       return;
     }
     const newStatus = !currentStatus;
     let spamReason = '';
     if (newStatus) {
-        // Custom prompt for spam reason
-        const reasonModal = document.createElement('div');
-        reasonModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        reasonModal.innerHTML = `
-            <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-                <p class="text-xl font-semibold mb-4">Enter a reason for marking this user as spam (optional):</p>
-                <input type="text" id="spamReasonInput" class="w-full px-4 py-2 border rounded-lg shadow-sm mb-4" style="border-color: ${currentColors.borderSubtle}; background-color: ${currentColors.inputBg}; color: ${currentColors.textPrimary};" />
-                <button id="confirmSpamReason" class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Confirm</button>
-                <button id="cancelSpamReason" class="px-6 py-2 rounded-full text-white font-bold ml-2" style="background-color: ${currentColors.errorText};">Cancel</button>
-            </div>
-        `;
-        document.body.appendChild(reasonModal);
-
-        await new Promise(resolve => {
-            reasonModal.querySelector('#confirmSpamReason').onclick = () => {
-                spamReason = reasonModal.querySelector('#spamReasonInput').value;
-                document.body.removeChild(reasonModal);
-                resolve();
-            };
-            reasonModal.querySelector('#cancelSpamReason').onclick = () => {
-                document.body.removeChild(reasonModal);
-                resolve(null); // Resolve with null to indicate cancellation
-            };
-        });
-
-        if (spamReason === null) { // If user cancelled the prompt
-            return;
-        }
+      spamReason = prompt("Enter a reason for marking this user as spam (optional):");
+      if (spamReason === null) {
+        return;
+      }
     }
 
     console.log(`[handleMarkUserAsSpam] Attempting to mark user ${userUid} as spam: ${newStatus}`);
@@ -727,110 +592,12 @@ export default function NgoDashboardPage() {
   };
 
   const handleGoToSpamAccountPage = (userUid) => {
-      // Using a custom modal-like alert instead of window.alert
-      const modalMessage = `Navigating to Spam Account Details for User ID: ${userUid}`;
-      const modalElement = document.createElement('div');
-      modalElement.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modalElement.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">${modalMessage}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(modalElement);
-      modalElement.querySelector('button').onclick = () => document.body.removeChild(modalElement);
+      alert(`Navigating to Spam Account Details for User ID: ${userUid}`);
   };
 
   const handleGoBack = () => {
     navigate('/');
   };
-
-  // NEW: Function to handle NGO premium upgrade
-  const handleUpgradeToPremium = async () => {
-    // Custom confirmation dialog for premium upgrade
-    const confirmModal = document.createElement('div');
-    confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    confirmModal.innerHTML = `
-        <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-            <p class="text-xl font-semibold mb-4">Are you sure you want to upgrade to a Premium NGO account?</p>
-            <p class="text-base mb-6">This will unlock all premium features and mark your NGO as verified.</p>
-            <button id="confirmUpgrade" class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Confirm Upgrade</button>
-            <button id="cancelUpgrade" class="px-6 py-2 rounded-full text-white font-bold ml-2" style="background-color: ${currentColors.errorText};">Cancel</button>
-        </div>
-    `;
-    document.body.appendChild(confirmModal);
-
-    const confirmed = await new Promise(resolve => {
-        confirmModal.querySelector('#confirmUpgrade').onclick = () => {
-            document.body.removeChild(confirmModal);
-            resolve(true);
-        };
-        confirmModal.querySelector('#cancelUpgrade').onclick = () => {
-            document.body.removeChild(confirmModal);
-            resolve(false);
-        };
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`http://localhost:5000/api/ngos/${loggedInNgoId}/verify-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-NGO-ID': loggedInNgoId,
-        },
-        body: JSON.stringify({ isVerified: true }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to upgrade to premium.');
-      }
-
-      // Update local state to reflect premium status
-      setLoggedInNgoDetails(prevDetails => ({ ...prevDetails, isVerified: true }));
-
-      // Using a custom modal-like alert instead of window.alert
-      const successModal = document.createElement('div');
-      successModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      successModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">🎉 Congratulations!</p>
-              <p class="text-base mb-6">Your NGO account is now Premium and Verified!</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">Awesome!</button>
-          </div>
-      `;
-      document.body.appendChild(successModal);
-      successModal.querySelector('button').onclick = () => document.body.removeChild(successModal);
-
-      // Re-fetch all data to ensure everything is up-to-date
-      await fetchReportsAndUsers();
-
-    } catch (err) {
-      console.error('Error upgrading to premium:', err);
-      setError(`Failed to upgrade: ${err.message}`);
-      // Using a custom modal-like alert for error
-      const errorModal = document.createElement('div');
-      errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      errorModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.errorBg}; color: ${currentColors.errorText};">
-              <p class="text-xl font-semibold mb-4">Upgrade Failed!</p>
-              <p class="text-base mb-6">${err.message}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.errorText};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(errorModal);
-      errorModal.querySelector('button').onclick = () => document.body.removeChild(errorModal);
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   // Combine all reports (user + ngo) - this is for the total reports count and general display
   const allReportsCombined = userReportsForReview.concat(allNgoReports);
@@ -942,33 +709,11 @@ export default function NgoDashboardPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      // Using a custom modal-like alert instead of window.alert
-      const successModal = document.createElement('div');
-      successModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      successModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">Reports exported successfully as CSV!</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(successModal);
-      successModal.querySelector('button').onclick = () => document.body.removeChild(successModal);
+      alert('Reports exported successfully as CSV!');
       console.log("[Export] CSV export successful.");
     } catch (err) {
       console.error('Error exporting reports CSV:', err);
       setError(`Error exporting reports: ${err.message}`);
-      // Using a custom modal-like alert for error
-      const errorModal = document.createElement('div');
-      errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      errorModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.errorBg}; color: ${currentColors.errorText};">
-              <p class="text-xl font-semibold mb-4">Error exporting reports!</p>
-              <p class="text-base mb-6">${err.message}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.errorText};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(errorModal);
-      errorModal.querySelector('button').onclick = () => document.body.removeChild(errorModal);
     }
   };
 
@@ -1002,33 +747,11 @@ export default function NgoDashboardPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      // Using a custom modal-like alert instead of window.alert
-      const successModal = document.createElement('div');
-      successModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      successModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.cardBackground}; color: ${currentColors.textPrimary};">
-              <p class="text-xl font-semibold mb-4">Zones exported successfully as GeoJSON!</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.primaryBrand};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(successModal);
-      successModal.querySelector('button').onclick = () => document.body.removeChild(successModal);
+      alert('Zones exported successfully as GeoJSON!');
       console.log("[Export] GeoJSON export successful.");
     } catch (err) {
       console.error('Error exporting zones GeoJSON:', err);
       setError(`Error exporting zones: ${err.message}`);
-      // Using a custom modal-like alert for error
-      const errorModal = document.createElement('div');
-      errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      errorModal.innerHTML = `
-          <div class="p-8 rounded-lg shadow-xl text-center" style="background-color: ${currentColors.errorBg}; color: ${currentColors.errorText};">
-              <p class="text-xl font-semibold mb-4">Error exporting zones!</p>
-              <p class="text-base mb-6">${err.message}</p>
-              <button class="px-6 py-2 rounded-full text-white font-bold" style="background-color: ${currentColors.errorText};">OK</button>
-          </div>
-      `;
-      document.body.appendChild(errorModal);
-      errorModal.querySelector('button').onclick = () => document.body.removeChild(errorModal);
     }
   };
 
@@ -1109,7 +832,7 @@ export default function NgoDashboardPage() {
         <h1 className="text-4xl font-extrabold mb-4 md:mb-0" style={{ color: currentColors.primaryBrand, textShadow: darkMode ? `0 0 18px ${currentColors.primaryBrand}` : 'none' }}>NGO Dashboard</h1>
         <div className="flex flex-wrap justify-center items-center gap-4">
           {/* NEW: NGO Premium/Verified Badge */}
-          {loggedInNgoDetails?.isVerified ? (
+          {loggedInNgoDetails?.isVerified && (
             <div className="flex items-center px-4 py-2 rounded-full text-base font-bold shadow-md"
                  style={{
                    background: currentColors.premiumBadgeBg,
@@ -1118,15 +841,6 @@ export default function NgoDashboardPage() {
                  }}>
               <Award size={20} className="mr-2" /> Verified NGO
             </div>
-          ) : (
-            // "Go Premium" button if not verified
-            <button
-              onClick={() => setShowPremiumModal(true)}
-              className="px-6 py-3 rounded-full text-white font-bold text-base transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center justify-center"
-              style={{ background: currentColors.secondaryAccent, boxShadow: darkMode ? `0 0 15px ${currentColors.secondaryAccent}` : `0 5px 15px rgba(255,140,0,0.3)` }}
-            >
-              <Award size={20} className="mr-2" /> Go Premium!
-            </button>
           )}
 
           <button
@@ -1234,6 +948,10 @@ export default function NgoDashboardPage() {
                   const markedAsSpamByThisNgo = report.markedAsSpamByNgos?.some(s => s.ngoId === loggedInNgoId);
                   const spamCount = report.markedAsSpamByNgos ? report.markedAsSpamByNgos.length : 0;
                   const verifiedCount = report.verifiedByNgos ? report.verifiedByNgos.length : 0;
+
+                  // Find the verification entry by the current logged-in NGO
+                  const currentNgoVerification = report.verifiedByNgos?.find(v => v.ngoId === loggedInNgoId);
+                  const isVerifiedByCurrentNgoPremium = currentNgoVerification?.isNgoPremium;
 
 
                   return (
@@ -1726,7 +1444,7 @@ export default function NgoDashboardPage() {
                                     : 0;
 
                                 return (
-                                    <li key={zone._id} className="flex justify-between items-center text-lg p-2 rounded-md" style={{ backgroundColor: index % 2 === 0 ? currentColors.cardBackground : currentColors.backgroundBase, borderColor: currentColors.borderSubtle }}>
+                                    <li key={zone._id} className="flex justify-between items-center text-lg p-2 rounded-md" style={{ backgroundColor: currentColors.cardBackground, border: `1px solid ${currentColors.borderSubtle}` }}>
                                         <span className="font-medium" style={{color: currentColors.textPrimary}}>{zone.name}:</span>
                                         <span className="text-gray-700 dark:text-gray-300 font-semibold">
                                             {reportsInThisZone.length} reports, {zoneVerificationPercent}% verified
@@ -1896,43 +1614,6 @@ export default function NgoDashboardPage() {
             </section>
         )}
       </main>
-
-      {/* Premium Upgrade Modal */}
-      {showPremiumModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in-down">
-          <div className="p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center transform scale-105"
-               style={{ backgroundColor: currentColors.cardBackground, border: `2px solid ${currentColors.secondaryAccent}`, boxShadow: `0 0 40px ${currentColors.secondaryAccent}60` }}>
-            <h2 className="text-4xl font-extrabold mb-6" style={{ color: currentColors.primaryBrand, textShadow: darkMode ? `0 0 15px ${currentColors.primaryBrand}` : 'none' }}>
-              Go Premium! <Award size={36} className="inline-block ml-2" style={{filter: darkMode ? `drop-shadow(0 0 10px ${currentColors.secondaryAccent})` : 'none'}} />
-            </h2>
-            <p className="text-lg mb-6" style={{ color: currentColors.textPrimary }}>
-              Unlock exclusive features and get a <span className="font-bold" style={{ color: currentColors.secondaryAccent }}>Verified Badge</span> displayed with your NGO name on all reports you verify!
-            </p>
-            <ul className="text-left space-y-3 mb-8 text-base" style={{ color: currentColors.textSecondary }}>
-              <li className="flex items-center"><CheckCircle size={20} className="mr-3" style={{ color: currentColors.successText }} /> Enhanced Analytics</li>
-              <li className="flex items-center"><CheckCircle size={20} className="mr-3" style={{ color: currentColors.successText }} /> Priority Support</li>
-              <li className="flex items-center"><CheckCircle size={20} className="mr-3" style={{ color: currentColors.successText }} /> Unlimited Zone Management</li>
-              <li className="flex items-center"><CheckCircle size={20} className="mr-3" style={{ color: currentColors.successText }} /> Official Verified NGO Badge</li>
-            </ul>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={handleUpgradeToPremium}
-                className="px-8 py-3 rounded-full text-white font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                style={{ background: currentColors.buttonPrimaryBg, boxShadow: darkMode ? `0 0 20px ${currentColors.primaryBrand}` : `0 8px 20px ${currentColors.shadowBase}` }}
-              >
-                Upgrade Now!
-              </button>
-              <button
-                onClick={() => setShowPremiumModal(false)}
-                className="px-8 py-3 rounded-full text-white font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                style={{ background: currentColors.errorText, boxShadow: darkMode ? `0 0 20px ${currentColors.errorText}` : `0 8px 20px rgba(220,38,38,0.3)` }}
-              >
-                Maybe Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
