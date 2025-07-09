@@ -125,6 +125,9 @@ const AllReportsPage = () => {
   const [currentUser, setCurrentUser] = useState(null); // State to hold user object including premium status
   const firebaseAuthUserId = "mock_firebase_uid_123"; // REPLACE WITH ACTUAL FIREBASE UID FROM AUTH
 
+  // Define the free report limit for clarity, even though backend enforces it
+  const REPORTS_FREE_LIMIT = 10;
+
   // Fetch current user details (including premium status)
   useEffect(() => {
     const fetchUser = async () => {
@@ -465,11 +468,11 @@ const AllReportsPage = () => {
       )}
 
       {/* Premium Access Restriction Banner */}
-      {!currentUser?.premium && filteredReports.length >= 10 && (
+      {!currentUser?.premium && filteredReports.length >= REPORTS_FREE_LIMIT && (
         <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg mt-4 mb-6 text-center shadow-md border"
              style={{ backgroundColor: currentColors.notificationUnreadBg, color: currentColors.notificationUnreadText, borderColor: currentColors.secondaryAccent }}>
           <strong style={{ color: currentColors.primaryBrand }}>🔓 Unlock full access!</strong><br />
-          You've reached the free limit of 10 reports. Upgrade to Premium to view unlimited reports and support our mission.
+          You've reached the free limit of {REPORTS_FREE_LIMIT} reports. Upgrade to Premium to view unlimited reports and support our mission.
           <button
             onClick={handleUpgrade}
             className="ml-4 px-6 py-2 rounded-full font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"

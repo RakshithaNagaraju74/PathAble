@@ -195,6 +195,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+// NEW: Route to fetch all reports for a specific user
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userReports = await Report.find({ reportedBy: userId }).sort({ timestamp: -1 });
+    res.status(200).json(userReports);
+  } catch (err) {
+    console.error('Error fetching user-specific reports:', err);
+    res.status(500).json({ error: 'Failed to fetch user reports', details: err.message });
+  }
+});
+
+
 // NEW: Add a route to fetch reports submitted by a specific NGO
 router.get('/ngo-contributions/:ngoId', ngoAuthMiddleware, async (req, res) => {
   try {
@@ -499,7 +512,7 @@ router.put('/users/:userUid/update-spam-status', ngoAuthMiddleware, async (req, 
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    user.isSpam = isSpam; // This field might need to be isGloballySpammed based on your schema
+    user.isGloballySpammed = isSpam; // Corrected to isGloballySpammed
     user.spamReason = spamReason;
     await user.save();
 
@@ -1057,3 +1070,4 @@ router.get('/user-analytics/:uid', async (req, res) => {
 
 
 module.exports = router;
+
