@@ -36,7 +36,7 @@ router.post('/', ngoAuthMiddleware, async (req, res) => {
   // The first and last points in each ring must be identical.
   // Assuming 'coordinates' from frontend is an array of Leaflet-style [latitude, longitude] pairs for a single ring.
   const geoJsonCoordinates = [
-    coordinates.map(point => [point[1], point[0]]) // Convert [lat, lng] to [lng, lat]
+    coordinates.map(point => [Number(point[1]), Number(point[0])]) // Convert [lat, lng] to [lng, lat] and ensure numbers
   ];
   // Ensure the polygon is closed (first and last coordinate are the same)
   if (geoJsonCoordinates[0].length > 0 && (geoJsonCoordinates[0][0][0] !== geoJsonCoordinates[0][geoJsonCoordinates[0].length - 1][0] || geoJsonCoordinates[0][0][1] !== geoJsonCoordinates[0][geoJsonCoordinates[0].length - 1][1])) {
@@ -66,19 +66,18 @@ router.post('/', ngoAuthMiddleware, async (req, res) => {
 });
 
 
-// GET /api/zones - Fetch all zones (MODIFIED: REMOVED ngoAuthMiddleware)
-router.get('/', async (req, res) => { // <--- MODIFIED LINE
+// GET /api/zones - Fetch all zones
+router.get('/', async (req, res) => {
   try {
     const zones = await Zone.find({}); // Fetch all zones
     const formattedZones = zones.map(zone => ({
-      id: zone._id,
+      _id: zone._id, // Use _id for consistency with frontend key
       name: zone.name,
-      // Ensure you return GeoJSON coordinates as expected by frontend map component
-      // If frontend expects [[lat, lng]] format, you'll need to transform
-      // Here we assume it can handle the GeoJSON `coordinates` structure directly,
-      // but UserReportsMap.jsx snippet previously converted: `zone.coordinates.coordinates[0].map(coord => [coord[1], coord[0]])`
-      // So, returning the raw GeoJSON coordinates array:
-      coordinates: zone.coordinates.coordinates, // This is the [[[lon, lat]]] array
+      // Convert GeoJSON coordinates [[[lng, lat]]] to Leaflet's expected [[lat, lng]]
+      // The GeoJSON `coordinates` field is an array of rings. For a simple polygon, it's `[outerRing]`.
+      // The outer ring is an array of points, each point is `[longitude, latitude]`.
+      // We need to convert each point to `[latitude, longitude]` for Leaflet.
+      coordinates: zone.coordinates.coordinates[0].map(coord => [coord[1], coord[0]]), // Convert [lng, lat] to [lat, lng]
       ngoId: zone.ngoId, // Include ngoId
       createdAt: zone.createdAt,
       // Add other properties if needed for display
@@ -146,7 +145,7 @@ router.put('/:id', ngoAuthMiddleware, async (req, res) => {
 
   // Convert client-side coordinates to GeoJSON Polygon format
   const geoJsonCoordinates = [
-    coordinates.map(point => [point[1], point[0]]) // Convert [lat, lng] to [lng, lat]
+    coordinates.map(point => [Number(point[1]), Number(point[0])]) // Convert [lat, lng] to [lng, lat] and ensure numbers
   ];
   if (geoJsonCoordinates[0].length > 0 && (geoJsonCoordinates[0][0][0] !== geoJsonCoordinates[0][geoJsonCoordinates[0].length - 1][0] || geoJsonCoordinates[0][0][1] !== geoJsonCoordinates[0][geoJsonCoordinates[0].length - 1][1])) {
     geoJsonCoordinates[0].push(geoJsonCoordinates[0][0]);

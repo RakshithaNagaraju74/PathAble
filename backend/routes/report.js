@@ -45,9 +45,17 @@ router.post('/', async (req, res) => {
       placeName,
       address,
       googleMapsLink,
+      city, // Added city
+      district, // Added district
+      postalCode, // Added postalCode
       notificationStatus,
       isNgoReport, // Field to identify NGO reports
       ngoReporterId, // NEW: ID of the NGO that made the report
+      // NEW: AI Verification fields
+      aiObjectDetection,
+      aiImageCaption,
+      aiVQA,
+      teachableMachinePrediction, // NEW: Teachable Machine Prediction
     } = req.body;
 
     let userName = 'Unknown';
@@ -70,22 +78,38 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Explicitly convert lat and lng to Number and handle potential NaN
+    const parsedLat = Number(lat);
+    const parsedLng = Number(lng);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng)) {
+        return res.status(400).json({ error: 'Invalid latitude or longitude provided.' });
+    }
+
     const newReport = new Report({
       type,
       comment,
       imageUrl,
-      latitude: lat, // Ensure field name matches schema
-      longitude: lng, // Ensure field name matches schema
+      latitude: parsedLat, // Ensure field name matches schema
+      longitude: parsedLng, // Ensure field name matches schema
       reportedBy,
       userName,
       timestamp: new Date(),
       placeName,
       address,
       googleMapsLink,
+      city, // Added city
+      district, // Added district
+      postalCode, // Added postalCode
       notificationStatus,
       isNgoReport: !!isNgoReport,
       ngoReporterId: isNgoReport ? ngoReporterId : null, // Set NGO reporter ID if it's an NGO report
-      userComments: []
+      userComments: [],
+      // NEW: AI Verification fields
+      aiObjectDetection,
+      aiImageCaption,
+      aiVQA,
+      teachableMachinePrediction, // NEW: Include Teachable Machine prediction
     });
 
     await newReport.save();
@@ -103,61 +127,71 @@ router.post('/', async (req, res) => {
 
 // GET /api/reports - Get all accessibility reports (can be filtered for NGO view or general public)
 // UPDATED: Added zoneId, startDate, and endDate filters
+// GET /api/reports - Get all reports (or filtered/limited)
 router.get('/', async (req, res) => {
   try {
-    const { ngoView, zoneId, startDate, endDate } = req.query;
-
+    const { ngoView, zoneId, userId: reqUserId } = req.query; // Added userId from query for premium check
     let query = {};
 
-    if (ngoView !== 'true') {
-      // Regular user view: only show reports NOT marked as spam by ANY NGO
-      query.$or = [
-        { markedAsSpamByNgos: { $exists: false } },
-        { markedAsSpamByNgos: { $size: 0 } }
-      ];
+    // If ngoView is true, fetch all reports including spam for NGO dashboard
+    if (ngoView === 'true') {
+      // No additional filtering for spam reports here, as NGOs need to see them
+      // The frontend NGO dashboard will handle the display logic for spam/verified
+    } else {
+      // For general users, filter out reports marked as spam by any NGO
+      query.markedAsSpamByNgos = { $size: 0 }; // Only include reports with no spam markings
     }
 
-    // Filter by date range
-    if (startDate || endDate) {
-      query.timestamp = {};
-      if (startDate) {
-        query.timestamp.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        // To include the whole end day, set the end date to the end of that day
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        query.timestamp.$lte = end;
-      }
-    }
-
-    // Handle zoneId filter for reports
-    // Note: If Report schema does not have a GeoJSON 'location' field,
-    // geospatial filtering will be handled on the frontend using `isPointInAnyZone`.
-    // The backend will return all reports matching other criteria.
     if (zoneId) {
-      // This block is intentionally left out for now, as `zoneId` filtering
-      // on the backend would require a schema change to `Report` (e.g., adding `location` GeoJSON field)
-      // or a more complex aggregation pipeline. Frontend `isPointInAnyZone` handles this.
+      if (!mongoose.Types.ObjectId.isValid(zoneId)) {
+        return res.status(400).json({ error: 'Invalid Zone ID format' });
+      }
+      const zone = await Zone.findById(zoneId);
+      if (!zone) {
+        return res.status(404).json({ error: 'Zone not found' });
+      }
+
+      // Extract coordinates from the Zone model's GeoJSON structure
+      const zoneCoordinates = zone.coordinates.coordinates[0]; // Assuming it's a single polygon
+
+      // Find reports within the specified zone
+      const reportsInZone = await Report.find({
+        latitude: { $ne: null }, // Ensure latitude exists
+        longitude: { $ne: null }, // Ensure longitude exists
+      });
+
+      const filteredReports = reportsInZone.filter(report => {
+        // pointInPolygon expects [x, y] where x is longitude, y is latitude
+        return pointInPolygon([report.longitude, report.latitude], zoneCoordinates);
+      });
+
+      // Override the query to use the filtered reports' IDs
+      query._id = { $in: filteredReports.map(r => r._id) };
     }
 
-    const reports = await Report.find(query).sort({ timestamp: -1 });
+    // Premium Access Feature Implementation
+    let limit = 10; // Default free limit
+    let user;
+
+    if (reqUserId) { // Use reqUserId from query parameter
+      user = await User.findOne({ uid: reqUserId });
+      if (user && user.premium) {
+        limit = 0; // No limit for premium users
+      }
+    }
+
+    let reportsQuery = Report.find(query).sort({ timestamp: -1 });
+
+    if (limit > 0) {
+      reportsQuery = reportsQuery.limit(limit);
+    }
+
+    const reports = await reportsQuery.exec();
 
     res.status(200).json(reports);
   } catch (err) {
-    console.error('MongoDB Error (Get Reports):', err);
-    res.status(500).json({ error: 'Failed to retrieve reports', details: err.message });
-  }
-});
-
-// Add a new route to fetch reports by userId for "My Contributions"
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const reports = await Report.find({ reportedBy: req.params.userId }).sort({ timestamp: -1 });
-    res.json(reports);
-  } catch (err) {
-    console.error('MongoDB Error (Fetch User Reports):', err);
-    res.status(500).json({ error: 'Failed to fetch user reports', details: err.message });
+    console.error('Error fetching reports:', err);
+    res.status(500).json({ error: 'Failed to fetch reports', details: err.message });
   }
 });
 
@@ -465,7 +499,7 @@ router.put('/users/:userUid/update-spam-status', ngoAuthMiddleware, async (req, 
       return res.status(404).json({ error: 'User not found.' });
     }
 
-    user.isSpam = isSpam;
+    user.isSpam = isSpam; // This field might need to be isGloballySpammed based on your schema
     user.spamReason = spamReason;
     await user.save();
 
@@ -875,6 +909,33 @@ router.get('/export/csv', ngoAuthMiddleware, async (req, res) => {
       {
         label: 'Official NGO Response',
         value: row => row.officialNgoResponse ? `By ${row.officialNgoResponse.ngoName}: "${row.officialNgoResponse.responseText}"` : 'N/A'
+      },
+      // NEW: Add AI verification fields to CSV export
+      {
+        label: 'AI Object Detection Success',
+        value: row => row.aiObjectDetection ? (row.aiObjectDetection.success ? 'Yes' : 'No') : 'N/A'
+      },
+      {
+        label: 'AI Detected Features',
+        value: row => row.aiObjectDetection && row.aiObjectDetection.features && row.aiObjectDetection.features.length > 0
+          ? row.aiObjectDetection.features.map(f => `${f.label} (${f.score}%)`).join('; ')
+          : 'N/A'
+      },
+      {
+        label: 'AI Object Detection Message',
+        value: row => row.aiObjectDetection ? row.aiObjectDetection.message || 'N/A' : 'N/A'
+      },
+      {
+        label: 'AI Image Caption',
+        value: row => row.aiImageCaption || 'N/A'
+      },
+      {
+        label: 'AI VQA Question',
+        value: row => row.aiVQA ? row.aiVQA.question || 'N/A' : 'N/A'
+      },
+      {
+        label: 'AI VQA Answer',
+        value: row => row.aiVQA ? row.aiVQA.answer || 'N/A' : 'N/A'
       },
     ];
 

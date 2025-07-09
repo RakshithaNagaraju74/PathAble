@@ -47,6 +47,22 @@ const reportSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // NEW: Added city, district, postalCode fields as they are now being sent from frontend
+  city: {
+    type: String,
+    trim: true,
+    default: 'N/A'
+  },
+  district: {
+    type: String,
+    trim: true,
+    default: 'N/A'
+  },
+  postalCode: {
+    type: String,
+    trim: true,
+    default: 'N/A'
+  },
   notificationStatus: {
     type: String,
     enum: ['none', 'pending', 'sent'],
@@ -86,14 +102,42 @@ const reportSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Ngo',
     default: null // Can be null if it's a regular user report
-  }
+  },
+  // NEW: Official NGO Response field
+  officialNgoResponse: {
+    ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ngo' },
+    ngoName: { type: String }, // Denormalized NGO name for easier display
+    responseText: { type: String },
+    timestamp: { type: Date, default: Date.now },
+  },
+  // NEW FIELDS FOR AI VERIFICATION (Hugging Face API Integration)
+  aiObjectDetection: {
+    success: { type: Boolean }, // True if accessibility features were detected
+    features: [{ // Array of detected features
+      label: { type: String }, // e.g., "ramp", "elevator"
+      score: { type: String } // Confidence score as a string (e.g., "98.75")
+    }],
+    message: { type: String } // Message if no features detected or an error occurred
+  },
+  aiImageCaption: { // Stores the generated image caption
+    type: String
+  },
+  aiVQA: { // Stores the Visual Question Answering result
+    question: { type: String },
+    answer: { type: String }
+  },
+  // NEW: Teachable Machine Prediction field
+  teachableMachinePrediction: {
+    className: { type: String },
+    probability: { type: String } // Storing as string to keep "XX.XX" format
+  },
 }, {
   timestamps: false // We are managing timestamp manually for better control
 });
 
 // Create a 2dsphere index for geospatial queries if you plan to use them
-reportSchema.index({ latitude: 1, longitude: 1 }); // Basic index for lat/lng
+// This is good practice if you intend to perform location-based queries in MongoDB
+// reportSchema.index({ location: '2dsphere' }); // If you add a GeoJSON 'location' field
+reportSchema.index({ latitude: 1, longitude: 1 }); // Basic index for lat/lng for now
 
-const Report = mongoose.model('Report', reportSchema);
-
-module.exports = Report;
+module.exports = mongoose.model('Report', reportSchema);

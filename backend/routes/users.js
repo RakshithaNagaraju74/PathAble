@@ -70,7 +70,20 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to save or update user', details: err.message });
   }
 });
-
+router.post('/:uid/upgrade', async (req, res) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { uid: req.params.uid },
+      { premium: true },
+      { new: true } // Return the updated document
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ message: '✅ Upgraded to premium', user });
+  } catch (err) {
+    console.error('Error upgrading user to premium:', err);
+    res.status(500).json({ error: 'Upgrade failed', details: err.message });
+  }
+});
 
 // GET /api/users/:uid - Get a user by uid
 router.get('/:uid', async (req, res) => {

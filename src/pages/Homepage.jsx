@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../pages/Homepage.css';
+import './Homepage.css'; // Make sure this path is correct
 
 import {
   MapPin,
@@ -8,226 +8,224 @@ import {
   Route,
   Accessibility,
   Toilet,
-  Brain, // Brain icon is still imported but not used for "AI" feature
+  ShieldCheck,
   ArrowRight,
   User,
-  ShieldCheck,
   Facebook,
   Twitter,
   Instagram,
-  Sun,
-  Moon,
+  Sun, // Imported for theme toggle
+  Moon, // Imported for theme toggle
 } from 'lucide-react';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [isDarkMode, setIsDarkMode] = useState(false); // State for theme
 
+  // Effect to load theme from localStorage on mount
   useEffect(() => {
-    const themeSwitcher = document.getElementById('theme-switcher');
-    if (!themeSwitcher) return;
-
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
-      themeSwitcher.checked = true;
+      setIsDarkMode(true);
     } else {
-      // Default to light mode if no saved theme or if saved as 'light'
       document.documentElement.removeAttribute('data-theme');
-      themeSwitcher.checked = false;
+      setIsDarkMode(false);
     }
-
-    const handleThemeChange = () => {
-      if (themeSwitcher.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-      }
-    };
-
-    themeSwitcher.addEventListener('change', handleThemeChange);
-    return () => {
-      themeSwitcher.removeEventListener('change', handleThemeChange);
-    };
   }, []);
 
-  const handleStartClick = () => {
-    navigate('/ngo-login');
+  // Function to toggle theme
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
   };
 
   return (
     <div className="homepage-container">
       <header className="main-header">
-        <nav className="navbar" role="navigation" aria-label="Main navigation for AccessMap for Disabled Individuals">
-          <a href="/" className="logo" aria-label="AccessMap Homepage">AccessMap</a>
+        <nav className="navbar container">
+          <a href="/" className="logo">AccessMap</a>
           <ul className="nav-links">
-            {/* Updated links to new pages */}
-            <li><a href="/how-it-helps">How It Helps</a></li>
-            <li><a href="/key-features">Key Features</a></li>
-            <li><a href="/community-voice">Community Voice</a></li>
-            <li><a href="/our-impact">Our Impact</a></li>
-            <li>
-              <a href="/login" className="btn btn-login" aria-label="Login to your AccessMap account">
-                <User /> Login
-              </a>
-            </li>
+            <li><a href="#how-it-helps" onClick={() => handleNavigate('/how-it-helps')}>How It Helps</a></li>
+            <li><a href="#features" onClick={() => handleNavigate('/key-features')}>Key Features</a></li>
+            <li><a href="#contribute" onClick={() => handleNavigate('/community-voice')}>Community</a></li>
+            <li><a href="#impact" onClick={() => handleNavigate('/our-impact')}>Our Impact</a></li>
           </ul>
+          <button onClick={() => handleNavigate('/login')} className="btn btn-header">
+            Get In Touch
+          </button>
+          {/* Theme Toggle Button */}
+          <div className="theme-toggle-wrapper">
+            <input
+              type="checkbox"
+              id="theme-switcher"
+              onChange={toggleTheme}
+              checked={isDarkMode}
+              aria-label="Toggle dark/light mode"
+            />
+            <label htmlFor="theme-switcher" className="theme-toggle-label">
+              {isDarkMode ? <Moon size={20} color="#f8f8f8" /> : <Sun size={20} color="#333" />}
+            </label>
+          </div>
         </nav>
       </header>
 
-      <div className="theme-float-toggle">
-        <input type="checkbox" id="theme-switcher" aria-label="Toggle Dark Mode" />
-        <label htmlFor="theme-switcher"></label>
-      </div>
-
-      <section className="hero-section" aria-labelledby="hero-title">
-        {/* Floating decorative bubbles with gradients and increased blur */}
-        <div className="floating-bubble" style={{ top: '10%', left: '5%', width: '120px', height: '120px', animationDelay: '0s' }}></div>
-        <div className="floating-bubble" style={{ bottom: '20%', right: '10%', width: '180px', height: '180px', animationDelay: '2s' }}></div>
-        <div className="floating-bubble" style={{ top: '50%', left: '30%', width: '90px', height: '90px', animationDelay: '4s' }}></div>
-
-        <div className="dot-decoration dot-1"></div>
-        <div className="dot-decoration dot-2"></div>
-        <div className="dot-decoration dot-3"></div>
-        <div className="hero-content-wrapper">
-          <div className="hero-text-content">
-            <h1 id="hero-title">Your World, Accessible. Navigate with Freedom.</h1>
-            <p>
-              AccessMap empowers <strong>disabled individuals</strong> to navigate their environment with <strong>unprecedented independence and confidence</strong>.
-              Discover precise, verified accessibility details for every location, ensuring barrier-free journeys, all fueled by a dedicated community.
-            </p>
-            <div className="hero-actions">
-              <div className="button-stack">
-                {/* Updated link for "Find Accessible Paths" */}
-                <button className="btn btn-primary" onClick={() => navigate('/login')}>Find Accessible Paths</button>
-                {/* Updated link for "Join Contributor Community" */}
-                <button className="btn btn-secondary" onClick={() => navigate('/ngo-registration')}>Join Contributor Community</button>
+      <main>
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="container">
+            <div className="hero-card">
+              <div className="hero-text-content">
+                <h1>Your World, Accessible. Navigate with Freedom.</h1>
+                <p>
+                  AccessMap empowers disabled individuals to navigate their environment with unprecedented independence and confidence. Discover precise, verified accessibility details for every location.
+                </p>
+                <div className="hero-actions">
+                    <button className="btn btn-primary" onClick={() => handleNavigate('/login')}>Find Accessible Paths</button>
+                    <button className="btn btn-secondary" onClick={() => handleNavigate('/ngo-login')}>Contributor Community</button>
+                </div>
+              </div>
+              <div className="hero-image-wrapper">
+                <img src="/assets/pic_2.jpg" alt="Person navigating a city with a wheelchair, symbolizing accessibility" />
               </div>
             </div>
           </div>
-          <div className="hero-image-gallery">
-            <img src="assets/pic_2.jpg" alt="Accessible entrance with service dog" />
-            <img src="assets/pic_1.jpg" alt="Blind person navigating with app" />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="how-it-works" className="how-it-works section-padding text-center" aria-labelledby="how-it-helps-title">
-        <div className="container">
-          <h2 id="how-it-helps-title">Achieve Independent Navigation.</h2>
-          <div className="steps-container">
-            <div className="step-item">
-              <MapPin />
-              <h3>Discover Barrier-Free Venues</h3>
-              <p>Locate businesses, venues, and public spaces with comprehensive, verified accessibility information tailored to your needs.</p>
+        {/* How It Works Section */}
+        <section id="how-it-helps" className="how-it-works-section section-padding">
+            <div className="container text-center">
+                <h2>Achieve Independent Navigation</h2>
+                <p className="section-subtitle">
+                    We adapt a uniquely personalized perspective to each journey. Our verified data, architectural understanding, and dedicated community ensure you travel with confidence.
+                </p>
+                <div className="steps-container">
+                    <div className="step-item">
+                        <MapPin size={40} />
+                        <h3>Discover Barrier-Free Venues</h3>
+                        <p>Locate businesses and public spaces with comprehensive accessibility information tailored to your needs.</p>
+                    </div>
+                    <div className="step-item">
+                        <Camera size={40} />
+                        <h3>Share Your Accessibility Insights</h3>
+                        <p>Contribute photos and detailed information to help others in the community find accessible places.</p>
+                    </div>
+                    <div className="step-item">
+                        <Route size={40} />
+                        <h3>Plan Your Accessible Journey</h3>
+                        <p>Generate personalized routes and get real-time updates for confident, stress-free travel.</p>
+                    </div>
+                </div>
             </div>
-            <div className="step-item">
-              <Camera />
-              <h3>Share Your Accessibility Insights</h3>
-              <p>Contribute photos and detailed information to help others find accessible places.</p>
-            </div>
-            <div className="step-item">
-              <Route />
-              <h3>Plan Your Accessible Journey</h3>
-              <p>Generate personalized routes and real-time updates for confident travel.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="features" className="features-showcase section-padding text-center" aria-labelledby="key-features-title">
-        <div className="container">
-          <h2 id="key-features-title">Uncompromising Accessibility Details, Demystified.</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <Accessibility />
-              <h3>Precise Entrance Details</h3>
-              <p>Ramp slopes, door widths, and automatic entry features at your fingertips.</p>
+        {/* Mid-Content with Images */}
+        <section className="mid-content-section section-padding">
+          {/* Removed container here to allow images to span full width */}
+          <div className="mid-content-grid">
+            <div className="mid-content-image mid-content-image-left">
+              <img src="/assets/pic_1.jpg" alt="Accessible home interior design" />
             </div>
-            <div className="feature-card">
-              <Toilet />
-              <h3>Accessible Restrooms</h3>
-              <p>Get verified info on turning radius, grab bars, and inclusive amenities.</p>
+            <div className="mid-content-text text-center container"> {/* Added container back for text */}
+              <h2>Join Our Community: <em>Become a Hero for Accessibility!</em></h2>
+              <p>
+                Empower lives and build a more inclusive world. Whether you're an NGO, a passionate youth, or a dedicated volunteer, your contributions make a monumental difference.
+              </p>
+              <button className="btn btn-primary" onClick={() => handleNavigate('/ngo-registration')}>Register Here & Become a Hero</button>
             </div>
-            {/* Removed AI-related feature card */}
-            <div className="feature-card">
-              <ShieldCheck /> {/* Replaced Brain icon with ShieldCheck for Community Verification */}
-              <h3>Community Verification System</h3>
-              <p>Our community-driven verification ensures the accuracy and reliability of accessibility data, building trust and confidence.</p>
+            <div className="mid-content-image mid-content-image-right">
+              <img src="/assets/pic_4.jpg" alt="Modern accessible building exterior" />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="contribute" className="community-hub section-padding text-center" aria-labelledby="community-voice-title">
-        <div className="container">
-          <h2 id="community-voice-title">Empowering Our Disability Community, Together.</h2>
-          <div className="community-content">
-            <div className="community-text">
-              <p><strong>Support Accessibility:</strong> Collaborate with local communities to make change.</p>
-              <p><strong>Empower Action:</strong> Help gather vital accessibility data.</p>
-              <p><strong>NGO Dashboard:</strong> Monitor your impact and manage volunteers.</p>
+        {/* Features Section - "Our Timeless Inclusions" */}
+        <section id="features" className="features-section section-padding">
+            <div className="container">
+                <div className="features-card">
+                    <div className="features-text-content">
+                        <h2>Our Timeless Inclusions</h2>
+                        <p>We've been creating a world our users are thrilled to call their own. Delighting them with hand-picked details, accurate data, and a system built for them.</p>
+                        <button className="btn btn-primary" onClick={() => handleNavigate('/key-features')}>View Features</button>
+                    </div>
+                    <div className="features-grid">
+                        <div className="feature-item">
+                            <Accessibility />
+                            <h3>Precise Entrance Details</h3>
+                            <p>Ramp slopes, door widths, and automatic entry features.</p>
+                        </div>
+                        <div className="feature-item">
+                            <Toilet />
+                            <h3>Accessible Restrooms</h3>
+                            <p>Info on turning radius, grab bars, and inclusive amenities.</p>
+                        </div>
+                        <div className="feature-item">
+                            <ShieldCheck />
+                            <h3>Community Verification</h3>
+                            <p>Data is verified by our community for accuracy and trust.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="community-visuals">
-              <img src="assets/pic_4.jpg" alt="Community collaborating on accessibility map" />
-            </div>
-          </div>
-          <button onClick={handleStartClick} className="btn btn-primary mt-6 lg:mt-0">
-            Start Your Contribution <ArrowRight className="inline ml-2" />
-          </button>
-        </div>
-      </section>
+        </section>
 
-      <section id="impact" className="impact-vision section-padding text-center" aria-labelledby="our-impact-title">
-        <div className="container">
-          <h2 id="our-impact-title">Driving Real Accessibility for Disabled Lives.</h2>
-          <div className="impact-metrics">
-            <div className="metric-item">
-              <span className="metric-number">100K+</span>
-              <p>Verified Accessible Locations</p>
+        {/* Impact Section */}
+        <section id="impact" className="impact-section section-padding">
+            <div className="container text-center">
+                 <h2>Driving Real Accessibility for Disabled Lives</h2>
+                <div className="impact-metrics">
+                    <div className="metric-item">
+                        <span className="metric-number">100K+</span>
+                        <p>Verified Locations</p>
+                    </div>
+                    <div className="metric-item">
+                        <span className="metric-number">50K+</span>
+                        <p>Disabled Lives Empowered</p>
+                    </div>
+                    <div className="metric-item">
+                        <span className="metric-number">20K+</span>
+                        <p>Dedicated Contributors</p>
+                    </div>
+                </div>
+                <blockquote className="testimonial">
+                    "AccessMap completely changed how I explore my city. For the first time, I feel true freedom and confidence when I go out. It’s an essential tool for accessibility."
+                    <span>- Rohan P.</span>
+                </blockquote>
             </div>
-            <div className="metric-item">
-              <span className="metric-number">50K+</span>
-              <p>Disabled Lives Empowered</p>
-            </div>
-            <div className="metric-item">
-              <span className="metric-number">20K+</span>
-              <p>Dedicated Contributors</p>
-            </div>
-          </div>
-          <blockquote className="testimonial">
-            "AccessMap changed how I explore my city. It’s an essential accessibility tool." - Rohan P.
-          </blockquote>
-          <p className="future-vision">
-            We’re building real-time updates, predictive routing, and personalized profiles to drive full inclusion.
-          </p>
-        </div>
-      </section>
+        </section>
+
+      </main>
 
       <footer className="main-footer" role="contentinfo">
         <div className="container">
-          <div className="footer-links">
-            <a href="#">About AccessMap</a>
-            <a href="#">Contact Us</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+          <div className="footer-content">
+              <div className="footer-about">
+                  <h3 className="logo">AccessMap</h3>
+                  <p>&copy; {new Date().getFullYear()} AccessMap. All rights reserved.</p>
+              </div>
+              <div className="footer-links">
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+              </div>
+              <div className="social-media">
+                <a href="#" aria-label="Facebook"><Facebook /></a>
+                <a href="#" aria-label="Twitter"><Twitter /></a>
+                <a href="#" aria-label="Instagram"><Instagram /></a>
+              </div>
           </div>
-          <div className="social-media">
-            <a href="#"><Facebook /></a>
-            <a href="#"><Twitter /></a>
-            <a href="#"><Instagram /></a>
-          </div>
-          <div className="app-download">
-            <p>Get the AccessMap Mobile App:</p>
-            <a href="#" className="btn btn-download">App Store</a>
-            <a href="#" className="btn btn-download">Google Play</a>
-            <a href="#" className="btn btn-download">Add to Home Screen (PWA)</a>
-          </div>
-          <p className="copyright">
-            &copy; {new Date().getFullYear()} AccessMap. All rights reserved.
-          </p>
         </div>
       </footer>
     </div>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, MapPin, User, Clock, MessageSquare, Heart,
   ChevronRight, Sun, Moon, Ruler, Toilet, ArrowUpSquare, BadgeInfo,
-  Compass, XCircle, ThumbsUp, Send, ShieldCheck, Ban, Building // Added Building icon for NGO reports
+  Compass, XCircle, ThumbsUp, Send, ShieldCheck, Ban, Building, Award // Added Award icon for premium badge
 } from 'lucide-react';
 
 // Re-using the color palette from MapView.jsx for consistency
@@ -119,16 +119,42 @@ const AllReportsPage = () => {
   // Get current color scheme
   const currentColors = darkMode ? colors.dark : colors.light;
 
+  // Placeholder for Firebase User ID.
+  // In a real app, this would come from Firebase Auth context.
+  // For now, we'll use a mock ID or get it from a global state/context if available.
+  const [currentUser, setCurrentUser] = useState(null); // State to hold user object including premium status
+  const firebaseAuthUserId = "mock_firebase_uid_123"; // REPLACE WITH ACTUAL FIREBASE UID FROM AUTH
+
+  // Fetch current user details (including premium status)
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!firebaseAuthUserId) return; // Don't fetch if no user ID
+      try {
+        const response = await fetch(`http://localhost:5000/api/users/${firebaseAuthUserId}`);
+        if (!response.ok) {
+          console.error(`Failed to fetch user data: ${response.status}`);
+          setCurrentUser(null);
+          return;
+        }
+        const userData = await response.json();
+        setCurrentUser(userData);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, [firebaseAuthUserId]);
+
+
   // Fetch all accessibility reports
-  // This page fetches reports WITHOUT the `ngoView=true` parameter,
-  // so it will only show non-spam reports as per backend logic.
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setLoading(true);
         console.log('Fetching all accessibility reports for AllReportsPage...');
-        // Default fetch (no ngoView=true) will only get non-spam reports from backend
-        const response = await fetch('http://localhost:5000/api/reports');
+        // Pass userId as a query parameter for premium check on backend
+        const response = await fetch(`http://localhost:5000/api/reports?userId=${firebaseAuthUserId}`);
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`HTTP error fetching reports! Status: ${response.status}, Response: ${errorText}`);
@@ -150,7 +176,7 @@ const AllReportsPage = () => {
     // Refresh data periodically (e.g., every 30 seconds)
     const intervalId = setInterval(fetchReports, 30000);
     return () => clearInterval(intervalId); // Cleanup on unmount
-  }, []);
+  }, [firebaseAuthUserId]); // Re-fetch if firebaseAuthUserId changes
 
   // Filter and Sort Reports
   useEffect(() => {
@@ -181,11 +207,12 @@ const AllReportsPage = () => {
 
 
   // Placeholder for userId from authentication (you might get this from context or props if logged in)
-  const userId = 'current_user_id_placeholder'; // Replace with actual user ID if implemented
+  const userId = firebaseAuthUserId; // Using the Firebase UID for all user-related actions
 
   const handleLikeComment = async (reportId, commentIndex) => {
     if (!userId) {
       // Use a custom alert/modal instead of window.alert
+      // For now, using a simple alert as per previous instruction to avoid complex modals
       alert("Please log in to like comments.");
       return;
     }
@@ -252,7 +279,7 @@ const AllReportsPage = () => {
 
   const handleCommentSubmit = async (reportId, commentText) => {
     // A placeholder userName as we don't have auth context here directly
-    const tempUserName = "Guest User"; // Replace with actual userName if from auth context
+    const tempUserName = currentUser?.displayName || currentUser?.firstName || "Guest User"; // Use actual user name if available
     if (!commentText.trim() || !userId) { // Ensure userId is available, though it's a placeholder here
       alert("Comment cannot be empty and you must be logged in."); // Use custom modal
       return;
@@ -346,6 +373,45 @@ const AllReportsPage = () => {
     });
   };
 
+  // NEW: handleUpgrade function for premium access
+  const handleUpgrade = async () => {
+    if (!currentUser || !currentUser.uid) {
+      alert("User not logged in. Cannot upgrade.");
+      return;
+    }
+
+    // Mock payment confirmation
+    const confirmed = window.confirm("Pay ₹99 to upgrade to Premium?");
+    if (!confirmed) {
+      setError("Payment cancelled.");
+      return;
+    }
+
+    try {
+      setError(''); // Clear previous errors
+      const response = await fetch(`http://localhost:5000/api/users/${currentUser.uid}/upgrade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upgrade to premium.');
+      }
+
+      const updatedUser = await response.json();
+      setCurrentUser(updatedUser.user); // Update local user state
+      alert("🎉 Successfully upgraded to Premium! Enjoy unlimited reports.");
+      // Optionally, re-fetch reports to immediately show all
+      // You might want to trigger a full page reload or navigate to force re-fetch
+      window.location.reload(); // Simple way to force re-fetch with new premium status
+    } catch (err) {
+      console.error("Error upgrading to premium:", err);
+      setError(`Upgrade failed: ${err.message}`);
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col" style={{ backgroundColor: currentColors.backgroundBase }}>
@@ -360,6 +426,17 @@ const AllReportsPage = () => {
       <header className="flex justify-between items-center p-4 rounded-xl mb-6 shadow-xl border transition-all duration-300" style={{ background: currentColors.headerBg, borderColor: currentColors.headerBorder }}>
         <h1 className="text-3xl font-bold" style={{ color: currentColors.textPrimary }}>All Accessibility Reports</h1>
         <div className="flex items-center space-x-4">
+          {/* Premium Badge */}
+          {currentUser?.premium && (
+            <div className="flex items-center px-3 py-1 rounded-full text-sm font-bold shadow-md"
+                 style={{
+                   background: currentColors.premiumBg,
+                   color: currentColors.sidebarActiveText, // White text
+                 }}>
+              <Award size={16} className="mr-1" /> Premium Member
+            </div>
+          )}
+
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full hover:bg-opacity-10"
@@ -386,6 +463,27 @@ const AllReportsPage = () => {
           <strong>Error: </strong>{error}
         </div>
       )}
+
+      {/* Premium Access Restriction Banner */}
+      {!currentUser?.premium && filteredReports.length >= 10 && (
+        <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg mt-4 mb-6 text-center shadow-md border"
+             style={{ backgroundColor: currentColors.notificationUnreadBg, color: currentColors.notificationUnreadText, borderColor: currentColors.secondaryAccent }}>
+          <strong style={{ color: currentColors.primaryBrand }}>🔓 Unlock full access!</strong><br />
+          You've reached the free limit of 10 reports. Upgrade to Premium to view unlimited reports and support our mission.
+          <button
+            onClick={handleUpgrade}
+            className="ml-4 px-6 py-2 rounded-full font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            style={{
+              background: currentColors.premiumBg,
+              color: currentColors.sidebarActiveText,
+              border: 'none',
+            }}
+          >
+            Upgrade to Premium
+          </button>
+        </div>
+      )}
+
 
       {/* Filters & Sorting */}
       <section className="p-7 rounded-xl shadow-md border mb-6" style={{ backgroundColor: currentColors.cardBackground, borderColor: currentColors.cardBorder }}>

@@ -6,14 +6,18 @@
 /* --- 0. Global Variables & Base Styles --- */
 :root {
     /* Color Palette: Light Mode Defaults */
-    --background-dark: #121212; /* Very dark background, almost black */
+    --background-dark: #F8F8F8; /* Light gray background for light mode */
     --background-light: #FFFFFF; /* Pure white for cards */
-    --text-on-dark: #E0E0E0; /* Light gray for text on dark backgrounds */
-    --text-on-light: #212121; /* Dark gray for text on light backgrounds */
-    --text-muted: #9E9E9E; /* Muted gray for secondary text */
+    --text-on-dark: #212121; /* Dark gray for text on light backgrounds */
+    --text-on-light: #212121; /* Dark gray for text on light cards */
+    --text-muted: #616161; /* Muted gray for secondary text */
     --border-color: #E0E0E0; /* Light gray for borders, used in light elements */
     --accent-color: #333333; /* Dark gray/black for main buttons and strong accents */
-    --card-background-dark: #1A1A1A; /* Slightly lighter dark for specific cards/elements in dark theme */
+    --card-background-dark: #FFFFFF; /* White for specific cards/elements in light theme */
+    --hover-teal-green: #008080; /* Teal green for hover effects */
+    --button-gradient: linear-gradient(to right, #007B8C, #00A693); /* Teal gradient for buttons */
+    --button-hover-gradient: linear-gradient(to right, #005F6B, #007B8C); /* Teal gradient for button hover */
+
 
     /* Typography */
     --font-heading: 'Playfair Display', serif;
@@ -29,20 +33,23 @@
 
     --max-width: 1200px;
     --border-radius: 20px;
-    --card-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    --image-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    --card-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); /* Lighter shadow for light mode */
+    --image-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Lighter shadow for light mode */
 }
 
 /* Dark Mode Variables */
 [data-theme='dark'] {
-    --background-dark: #121212;
+    --background-dark: #121212; /* Very dark background, almost black */
     --background-light: #1A1A1A; /* Darker cards in dark mode */
-    --text-on-dark: #E0E0E0;
+    --text-on-dark: #E0E0E0; /* Light gray for text on dark backgrounds */
     --text-on-light: #F0F0F0; /* Lighter text on dark cards */
-    --text-muted: #9E9E9E;
+    --text-muted: #9E9E9E; /* Muted gray for secondary text */
     --border-color: #555555; /* Darker border for dark elements */
     --accent-color: #E0E0E0; /* Lighter accent for dark mode buttons */
     --card-background-dark: #212121; /* Even darker cards in dark mode */
+    --hover-teal-green: #00B2B2; /* Slightly lighter teal green for dark mode hover */
+    --button-gradient: linear-gradient(to right, #00A693, #007B8C); /* Dark mode teal gradient for buttons */
+    --button-hover-gradient: linear-gradient(to right, #007B8C, #005F6B); /* Dark mode teal gradient for button hover */
 }
 
 
@@ -94,8 +101,9 @@ a {
     transition: color 0.3s ease;
 }
 
+/* Teal green hover for general links */
 a:hover {
-    color: var(--text-muted);
+    color: var(--hover-teal-green);
 }
 
 img {
@@ -125,15 +133,15 @@ img {
 /* --- Buttons --- */
 .btn {
     display: inline-block;
-    padding: 0.9rem 2.2rem;
+    padding: 1rem 2.5rem; /* Increased padding for larger size */
     border-radius: 8px;
     font-family: var(--font-body);
     font-weight: 700;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, color 0.5s ease, border-color 0.5s ease; /* Added border-color to transition */
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, color 0.5s ease, border-color 0.5s ease; /* Changed background-color to background for gradients */
     border: none;
-    font-size: 1rem;
+    font-size: 1.1rem; /* Increased font size for larger buttons */
 }
 
 .btn:hover {
@@ -142,19 +150,20 @@ img {
 }
 
 .btn-primary {
-    background-color: var(--accent-color);
+    background: var(--button-gradient); /* Apply gradient */
     color: var(--background-light);
 }
+/* Teal green hover for primary buttons */
 .btn-primary:hover {
-    background-color: #000;
+    background: var(--button-hover-gradient); /* Apply hover gradient */
     color: #fff;
 }
 [data-theme='dark'] .btn-primary {
-    background-color: var(--accent-color);
-    color: var(--text-on-dark);
+    background: var(--button-gradient); /* Dark mode gradient */
+    color: var(--text-on-dark); /* Lighter text for contrast */
 }
 [data-theme='dark'] .btn-primary:hover {
-    background-color: #333;
+    background: var(--button-hover-gradient); /* Dark mode hover gradient */
     color: var(--background-light);
 }
 
@@ -164,17 +173,20 @@ img {
     color: var(--accent-color);
     border: 2px solid var(--border-color); /* Uses CSS variable */
 }
+/* Teal green hover for secondary buttons */
 .btn-secondary:hover {
-    background-color: #f8f8f8;
-    color: var(--text-on-light);
+    background-color: var(--hover-teal-green);
+    color: #fff;
+    border-color: var(--hover-teal-green);
 }
 [data-theme='dark'] .btn-secondary {
     color: var(--text-on-dark);
     border: 2px solid var(--border-color);
 }
 [data-theme='dark'] .btn-secondary:hover {
-    background-color: #2a2a2a;
+    background-color: var(--hover-teal-green);
     color: var(--text-on-dark);
+    border-color: var(--hover-teal-green);
 }
 
 /* --- 1. Header --- */
@@ -212,6 +224,7 @@ img {
     position: relative;
     transition: color 0.5s ease;
 }
+/* Teal green underline and text for navbar links on hover */
 .nav-links a::after {
     content: '';
     position: absolute;
@@ -219,29 +232,36 @@ img {
     bottom: 0;
     width: 0;
     height: 2px;
-    background-color: var(--text-on-dark);
+    background-color: var(--hover-teal-green); /* Teal green underline */
     transition: width 0.3s ease, background-color 0.5s ease;
 }
 .nav-links a:hover::after,
 .nav-links a:focus::after {
     width: 100%;
 }
+.nav-links a:hover,
+.nav-links a:focus {
+    color: var(--hover-teal-green); /* Teal green text on hover */
+}
+
 
 .btn-header {
-    background: var(--accent-color);
+    background: var(--button-gradient); /* Apply gradient */
     color: var(--background-light);
     border-radius: 6px;
-    font-size: 0.95rem;
+    font-size: 1.05rem; /* Slightly increased for header button */
+    padding: 0.9rem 2.2rem; /* Keep similar padding to other buttons or adjust as needed */
 }
+/* Teal green hover for header button */
 .btn-header:hover {
-    background-color: #000;
+    background: var(--button-hover-gradient); /* Apply hover gradient */
 }
 [data-theme='dark'] .btn-header {
-    background-color: var(--accent-color);
-    color: var(--text-on-dark);
+    background: var(--button-gradient); /* Dark mode gradient */
+    color: var(--text-on-dark); /* Lighter text for contrast */
 }
 [data-theme='dark'] .btn-header:hover {
-    background-color: #333;
+    background: var(--button-hover-gradient); /* Dark mode hover gradient */
 }
 
 
@@ -391,18 +411,21 @@ img {
     border-radius: var(--border-radius);
     color: var(--text-on-dark);
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Lighter shadow */
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.5s ease, color 0.5s ease;
 }
 .step-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Lighter hover shadow */
 }
 .step-item svg {
-    color: var(--text-on-dark);
+    color: var(--accent-color); /* Use accent color for icons */
     margin-bottom: var(--spacing-md);
     font-size: 40px;
     transition: color 0.5s ease;
+}
+[data-theme='dark'] .step-item svg {
+    color: var(--text-on-dark); /* Lighter icons in dark mode */
 }
 .step-item h3 {
     color: var(--text-on-dark);
@@ -419,47 +442,56 @@ img {
     background-color: var(--background-dark);
     padding: var(--spacing-xxl) 0; /* Adjust padding for visual balance */
     transition: background-color 0.5s ease;
+    overflow: hidden; /* Important to ensure content doesn't cause horizontal scroll due to shadows/transforms */
 }
 
 .mid-content-grid {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr; /* This creates the 1fr image, 2fr text, 1fr image layout */
-    align-items: center;
-    /* No max-width or margin auto here to allow full width images */
+    align-items: center; /* Keep this for overall vertical alignment, then use translateY for offset */
 }
 
 .mid-content-image {
-    padding: 0; /* Remove padding to allow image to touch edges */
-    overflow: hidden;
-    /* box-shadow: var(--image-shadow); Removed box shadow for seamless edges */
+    padding: 0; /* Ensures images are flush with container edges */
+    overflow: hidden; /* Necessary if any inner content needs to be clipped, but mainly for consistent behavior */
 }
-/* Ensure images span full height in their grid area */
+
+/* This targets the actual image element within mid-content-image, setting base styles */
 .mid-content-image img {
-    border-radius: 0; /* Remove border-radius to allow seamless edges */
+    /* No border-radius here; it will be applied specifically to left/right images below */
     object-fit: cover;
     height: 350px; /* Fixed height for consistency */
     width: 100%;
     display: block;
 }
 
-/* Specific styling for left and right images to extend to screen edges */
+/* Specific styling for left image: curved on right side, moved higher, and directed shadow */
 .mid-content-image-left {
-    padding-left: 0; /* Ensure no padding on the very left */
-    /* Only apply shadow on the inner side if desired, otherwise remove */
-    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.15); /* Shadow on the right side */
+    transform: translateY(-150px); /* Increased negative value to move left image higher */
+    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.1); /* Lighter shadow only on the right (inner) side */
+}
+.mid-content-image-left img {
+    border-top-right-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    /* Other corners remain sharp by default */
 }
 
+
+/* Specific styling for right image: curved on left side, moved lower, and directed shadow */
 .mid-content-image-right {
-    padding-right: 0; /* Ensure no padding on the very right */
-    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.15); /* Shadow on the left side */
+    transform: translateY(180px); /* Increased positive value to move right image lower */
+    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1); /* Lighter shadow only on the left (inner) side */
+}
+.mid-content-image-right img {
+    border-top-left-radius: var(--border-radius);
+    border-bottom-left-radius: var(--border-radius);
+    /* Other corners remain sharp by default */
 }
 
 
 .mid-content-text {
     padding: var(--spacing-md);
     text-align: center;
-    /* Add horizontal padding based on container for text alignment */
-    /* The .container class added in JSX handles max-width and padding for the text */
 }
 .mid-content-text h2 {
     font-size: clamp(2.5rem, 4vw, 3.8rem);
@@ -477,8 +509,13 @@ img {
     margin: 0 auto var(--spacing-lg);
 }
 .mid-content-text .btn-primary {
-    background-color: var(--accent-color);
+    background: var(--button-gradient); /* Apply gradient */
     color: var(--background-light);
+}
+/* Teal green hover for mid-content button */
+.mid-content-text .btn-primary:hover {
+    background: var(--button-hover-gradient); /* Apply hover gradient */
+    color: #fff;
 }
 
 
@@ -490,8 +527,8 @@ img {
 }
 
 .features-card {
-    background-color: #2D3D3A; /* A specific dark green for this card based on the image */
-    color: var(--text-on-dark);
+    background-color: #E0F2F1; /* Light teal for light mode */
+    color: var(--text-on-light);
     border-radius: var(--border-radius);
     padding: var(--spacing-xl);
     display: flex;
@@ -503,7 +540,8 @@ img {
     transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
 }
 [data-theme='dark'] .features-card {
-    background-color: var(--card-background-dark); /* Use a more generic dark background in dark mode */
+    background-color: #2D3D3A; /* Dark teal for dark mode */
+    color: var(--text-on-dark);
 }
 
 .features-text-content {
@@ -511,9 +549,12 @@ img {
     min-width: 300px;
 }
 .features-text-content h2 {
-    color: var(--text-on-dark);
+    color: var(--text-on-light); /* Dark text on light teal card */
     font-size: clamp(2.5rem, 4vw, 3.5rem);
     margin-bottom: var(--spacing-md);
+}
+[data-theme='dark'] .features-text-content h2 {
+    color: var(--text-on-dark); /* Light text on dark teal card */
 }
 .features-text-content p {
     margin-left: 0;
@@ -524,15 +565,17 @@ img {
 }
 .features-text-content .btn {
     margin-top: var(--spacing-md);
-    background-color: var(--background-light);
-    color: var(--text-on-light);
+    background: var(--button-gradient); /* Apply gradient */
+    color: var(--background-light);
     border: none;
 }
+/* Teal green hover for features button */
 .features-text-content .btn:hover {
-    background-color: #f0f0f0;
+    background: var(--button-hover-gradient); /* Apply hover gradient */
+    color: #fff;
 }
 [data-theme='dark'] .features-text-content .btn {
-    background-color: var(--background-light); /* Lighter background for button in dark card */
+    background: var(--button-gradient); /* Dark mode gradient */
     color: var(--text-on-light); /* Darker text on lighter button */
 }
 
@@ -547,22 +590,28 @@ img {
 
 .feature-item {
     text-align: left;
-    border-top: 1px solid rgba(255,255,255,0.2);
+    border-top: 1px solid rgba(0,0,0,0.1); /* Darker border for light teal card */
     padding-top: var(--spacing-md);
     padding-left: var(--spacing-xs);
     transition: border-color 0.5s ease;
 }
 [data-theme='dark'] .feature-item {
-    border-color: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2); /* Lighter border for dark teal card */
 }
 .feature-item svg {
     margin-bottom: var(--spacing-sm);
-    color: var(--text-on-dark);
+    color: var(--accent-color); /* Dark icons on light teal */
     font-size: 30px;
 }
+[data-theme='dark'] .feature-item svg {
+    color: var(--text-on-dark); /* Light icons on dark teal */
+}
 .feature-item h3 {
-    color: var(--text-on-dark);
+    color: var(--text-on-light); /* Dark text on light teal */
     font-size: 1.5rem;
+}
+[data-theme='dark'] .feature-item h3 {
+    color: var(--text-on-dark); /* Light text on dark teal */
 }
 .feature-item p {
     color: var(--text-muted);
@@ -652,8 +701,9 @@ img {
     color: var(--text-muted);
     transition: color 0.5s ease;
 }
+/* Teal green hover for footer links */
 .footer-links a:hover {
-    color: white;
+    color: var(--hover-teal-green);
 }
 .social-media {
     display: flex;
@@ -664,8 +714,9 @@ img {
     color: var(--text-muted);
     transition: color 0.5s ease;
 }
+/* Teal green hover for social media icons */
 .social-media a:hover {
-    color: white;
+    color: var(--hover-teal-green);
     transform: scale(1.1);
 }
 
@@ -737,12 +788,13 @@ img {
     .mid-content-grid {
         grid-template-columns: 1fr; /* Stack on smaller screens */
     }
-    /* Full width images on small screens */
+    /* Reset stagger and apply consistent image styles for mobile */
     .mid-content-image-left, .mid-content-image-right {
-        width: 100%;
-        box-shadow: none; /* Remove shadows if images are stacked */
+        transform: translateY(0); /* Remove vertical offset on mobile */
+        box-shadow: var(--image-shadow); /* Apply general shadow for stacked mobile images */
     }
     .mid-content-image img {
+        border-radius: var(--border-radius); /* Apply curvature back on mobile images */
         height: 250px; /* Adjust height for mobile */
     }
     .mid-content-text {
