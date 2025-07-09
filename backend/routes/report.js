@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../models/Report');
 const User = require('../models/User');
-const Ngo = require('../models/NgoModel');
+const Ngo = require('../models/NgoModel'); // Import NgoModel
 const Zone = require('../models/Zone'); // Import Zone model
 const mongoose = require('mongoose');
 const pointInPolygon = require('point-in-polygon'); // For geospatial checks on the backend
@@ -409,6 +409,14 @@ router.put('/:reportId/verify', ngoAuthMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Report not found.' });
         }
 
+        // Fetch the NGO's details to get its name and premium status
+        const verifyingNgo = await Ngo.findById(ngoId);
+        if (!verifyingNgo) {
+            return res.status(404).json({ error: 'Verifying NGO not found.' });
+        }
+        const ngoName = verifyingNgo.name;
+        const isNgoPremium = verifyingNgo.subscriptionTier === 'premium' || verifyingNgo.isVerified; // Use isVerified from NgoModel for premium status
+
         // Initialize verifiedByNgos if it doesn't exist
         if (!report.verifiedByNgos) {
             report.verifiedByNgos = [];
@@ -419,9 +427,17 @@ router.put('/:reportId/verify', ngoAuthMiddleware, async (req, res) => {
         if (isVerified) {
             if (ngoVerificationIndex === -1) {
                 // Add NGO's verification if not already present
-                report.verifiedByNgos.push({ ngoId: ngoId, timestamp: new Date() });
-                // Note: The user's badge count increment logic for verification is removed from here
-                // as it should be managed centrally and not by each NGO's verification action.
+                report.verifiedByNgos.push({
+                    ngoId: ngoId,
+                    ngoName: ngoName, // Store NGO name
+                    isNgoPremium: isNgoPremium, // Store NGO premium status
+                    timestamp: new Date()
+                });
+            } else {
+                // Update existing verification to reflect current premium status and name
+                report.verifiedByNgos[ngoVerificationIndex].ngoName = ngoName;
+                report.verifiedByNgos[ngoVerificationIndex].isNgoPremium = isNgoPremium;
+                report.verifiedByNgos[ngoVerificationIndex].timestamp = new Date();
             }
         } else {
             if (ngoVerificationIndex !== -1) {
@@ -429,10 +445,10 @@ router.put('/:reportId/verify', ngoAuthMiddleware, async (req, res) => {
                 report.verifiedByNgos.splice(ngoVerificationIndex, 1);
             }
         }
-        
+
         await report.save();
 
-        res.status(200).json({ message: `Report successfully ${isVerified ? 'verified' : 'un-verified'} by NGO ${ngoId}`, report });
+        res.status(200).json({ message: `Report successfully ${isVerified ? 'verified' : 'un-verified'} by NGO ${ngoName}`, report });
     } catch (err) {
         console.error('MongoDB Error (Verify Report):', err);
         res.status(500).json({ error: 'Failed to verify report', details: err.message });
@@ -910,7 +926,7 @@ router.get('/export/csv', ngoAuthMiddleware, async (req, res) => {
       {
         label: 'Verified By NGOs',
         value: row => row.verifiedByNgos && row.verifiedByNgos.length > 0
-          ? row.verifiedByNgos.map(v => v.ngoId.toString()).join('; ')
+          ? row.verifiedByNgos.map(v => `${v.ngoName} (ID: ${v.ngoId.toString()}${v.isNgoPremium ? ', Premium' : ''})`).join('; ')
           : 'No'
       },
       {
@@ -1070,4 +1086,3 @@ router.get('/user-analytics/:uid', async (req, res) => {
 
 
 module.exports = router;
-

@@ -80,10 +80,12 @@ const reportSchema = new mongoose.Schema({
   trustedBy: [{ // Array of userIds who 'trusted' this report
     type: String
   }],
-  // NEW FIELDS FOR NGO DASHBOARD
+  // UPDATED: verifiedByNgos to include ngoName and isNgoPremium status
   verifiedByNgos: [ // Array of NGOs who have verified this report
     {
       ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ngo', required: true },
+      ngoName: { type: String }, // Denormalized NGO name for display
+      isNgoPremium: { type: Boolean, default: false }, // NEW: Is the verifying NGO a premium/verified NGO?
       timestamp: { type: Date, default: Date.now }
     }
   ],

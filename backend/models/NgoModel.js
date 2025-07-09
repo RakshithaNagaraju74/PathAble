@@ -44,9 +44,11 @@ const ngoSchema = new mongoose.Schema({
     type: Number,
     default: 2, // Free tier limit
   },
-  // You might add more freemium-related fields here, e.g.,
-  // analyticsAccess: { type: String, enum: ['basic', 'advanced'], default: 'basic' },
-  // supportTier: { type: String, enum: ['standard', 'technical', 'priority'], default: 'standard' },
+  // NEW: Field to indicate if the NGO itself is verified (e.g., a premium feature)
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true // Adds createdAt and updatedAt timestamps
 });
