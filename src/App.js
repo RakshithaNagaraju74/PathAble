@@ -8,6 +8,7 @@ import AddReportPage from './pages/AddReportPage';
 import MyContributionsPage from './pages/MyContributionsPage';
 import AllReportsPage from './pages/AllReportsPage';
 import BadgesPage from './pages/Badges';
+import PremiumAccessPage from './pages/PremiumAccessPage';
 import SettingsPage from './pages/Settings';
 import NgoLogin from './pages/NgoLoginPage';
 import SpamAccountPage from './pages/SpamAccountPage'; // Import the SpamAccountPage
@@ -44,6 +45,7 @@ function App() {
         <Route path="/user-analytics" element={<UserAnalyticsPage />} />
         <Route path="/how-it-helps" element={<HowItHelpsPage />} />
         <Route path="/key-features" element={<KeyFeaturesPage />} />
+        <Route path="/premium-access" element={<PremiumAccessPage />} /> 
         <Route path="/community-voice" element={<CommunityVoicePage />} />
         <Route path="/our-impact" element={<OurImpactPage />} />
         <Route path="/our-impact" element={<OurImpactPage />} />
