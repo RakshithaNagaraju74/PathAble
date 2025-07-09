@@ -74,6 +74,8 @@ Integrated with:
 
 ---
 
+Presentation Link : https://docs.google.com/presentation/d/1AkCl7vfh2Lcghyx1V10DQSdzTA76TUf2/edit?usp=sharing&ouid=109757433795874036217&rtpof=true&sd=true
+
 ## 📅 Setup Instructions
 
 1. Clone the repo
