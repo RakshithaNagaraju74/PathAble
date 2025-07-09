@@ -67,6 +67,10 @@ Integrated with:
 * get verified for taking premium
 * Access for every report others publish
 
+### Multi Language Support
+
+* user with premium can access multi-lingual reports
+
 ---
 
 ## 📈 Tech Stack
