@@ -62,6 +62,11 @@ Integrated with:
 * Top Contributor
 * NGO of the Week
 
+### Premium Features Enables
+
+* get verified for taking premium
+* Access for every report others publish
+
 ---
 
 ## 📈 Tech Stack
